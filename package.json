@@ -1,0 +1,12 @@
+{
+	"name": "ld51",
+	"version": "0.0.1",
+	"scripts": {
+		"bundle": "sh scripts/bundle.sh",
+		"lint": "eslint .",
+		"start": "nodemon server/webserver.js"
+	},
+	"devDependencies": {
+		"eslint": "^8.24.0"
+	}
+}
