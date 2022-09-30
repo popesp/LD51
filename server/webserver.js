@@ -1,6 +1,6 @@
 import fs from 'fs';
-const path = require('path');
-const http = require('http');
+import path from 'path';
+import http from 'http';
 
 
 const PORT = 80;

@@ -1,6 +1,7 @@
 {
 	"name": "ld51",
 	"version": "0.0.1",
+	"type": "module",
 	"scripts": {
 		"bundle": "sh scripts/bundle.sh",
 		"lint": "eslint .",
