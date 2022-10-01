@@ -3,6 +3,9 @@ export default class InputManager
 	constructor()
 	{
 		this.events = [];
+		this.keys = {};
+
+		this.clear();
 	}
 
 	clear()
@@ -11,6 +14,14 @@ export default class InputManager
 			event.element.removeEventListener(event.key, event.callback);
 
 		this.events = [];
+		this._add(document, 'keydown', event =>
+		{
+			this.keys[event.code] = true;
+		});
+		this._add(document, 'keyup', event =>
+		{
+			this.keys[event.code] = false;
+		});
 	}
 
 	_add(element, key, callback)
@@ -22,5 +33,15 @@ export default class InputManager
 	mouse(callback)
 	{
 		this._add(document, 'mousemove', callback);
+	}
+
+	click(callback)
+	{
+		this._add(document, 'click', callback);
+	}
+
+	getKey(code)
+	{
+		return Boolean(this.keys[code]);
 	}
 }
