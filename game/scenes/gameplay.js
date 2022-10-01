@@ -222,7 +222,6 @@ function move_baddies(game)
 						dude.sprite.clearTint();
 					}
 				});
-                console.log(dude.hp);
             }
         }
     }
