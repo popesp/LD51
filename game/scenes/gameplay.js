@@ -10,19 +10,23 @@ const RUN_DECEL = 1;
 const MAX_SPEED = 8;
 
 const dude = {
-    hp: 5
+    xvel: 0,
+    yvel: 0,
+    hp_max: 5,
+    hp_current: 5,
+    level: 1
 }
 const bullets = [];
 const baddies = [];
 const fireRate = 200;
 let nextFire = 0;
 let nextSpawn = 1000;
+let prev_count_down = 1;
 const spawnRate = 1000;
 const bulletSpeed = 8;
 const hitInvince = 1000;
+const timer = 10;
 let nextInvince = 0;
-let player_x_vel = 0;
-let player_y_vel = 0;
 export default new Phaser.Class({
 	Extends: Phaser.Scene,
 	initialize: function()
@@ -41,12 +45,24 @@ export default new Phaser.Class({
 	},
 	create: function()
 	{
+        this.input.setDefaultCursor('url(assets/sprites/crosshair.png), pointer');
         dude.sprite = this.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1);
 
+        dude.sprite.setPosition(dude.x, dude.y);
+        this.cameras.main.startFollow(dude.sprite);
+        this.cameras.main.setBounds(0, 0, 2000, 2000);
+        this.cameras.main.setZoom(1);
+
         this.cursors = this.input.keyboard.addKeys("UP,LEFT,DOWN,RIGHT,W,A,S,D,R,SPACE");
+        this.ui = {
+            bar_bg: this.add.graphics().fillStyle(0xcc2418, 1).fillRect(0, -2, 204, 38).setPosition(14, 14),
+            bar: this.add.graphics().fillStyle(0xebb134, 1).fillRect(0, 0, 200, 30).setPosition(16, 16),
+            stamina_display: this.add.text(52, 18, "Health: " + dude.hp_max, {fontSize: "24px", fill: "#000"}),
+            text_level: this.add.text(1000, 18, + timer + "     Level: " + dude.level, {fontSize: "24px", fill: "#ffffff"})
+        };
 
-        this.bullets = [];
-
+        for(const key_object in this.ui)
+            this.ui[key_object].setScrollFactor(0).setDepth(4);
 	},
     update: function()
     {
@@ -54,54 +70,79 @@ export default new Phaser.Class({
         const right = this.cursors.D.isDown || this.cursors.RIGHT.isDown;
         const up = this.cursors.W.isDown || this.cursors.UP.isDown;
         const down = this.cursors.S.isDown || this.cursors.DOWN.isDown;
-        const action = this.cursors.SPACE.isDown;
+        //10 sec timer
+        const count_down = Math.trunc((this.time.now/1000)%10);
+        if(count_down !== prev_count_down)
+        {
+            if (count_down === 1)
+            {
+                //do level up here
+                dude.level ++;
+            }
+            this.ui.text_level.setText(count_down + "     Level: " + dude.level);
+            if (count_down === 0)
+            {
+                this.ui.text_level.setText(10 + "     Level: " + dude.level);
+            }
+        }
+        prev_count_down = count_down;
+
         if(left === right)
         {
-            if(player_x_vel > 0)
-                player_x_vel = Math.max(0, player_x_vel - RUN_DECEL);
+            if(dude.xvel > 0)
+                dude.xvel = Math.max(0, dude.xvel - RUN_DECEL);
             else
-                player_x_vel = Math.min(0, player_x_vel + RUN_DECEL);
+                dude.xvel = Math.min(0, dude.xvel + RUN_DECEL);
         
-            dude.sprite.x += player_x_vel;
+            dude.sprite.x += dude.xvel;
         }
 
         if(up === down)
         {
-            if(player_y_vel > 0)
-                player_y_vel = Math.max(0, player_y_vel - RUN_DECEL);
+            if(dude.yvel > 0)
+                dude.yvel = Math.max(0, dude.yvel - RUN_DECEL);
             else
-                player_y_vel = Math.min(0, player_y_vel + RUN_DECEL);
+                dude.yvel = Math.min(0, dude.yvel + RUN_DECEL);
 
-            dude.sprite.y += player_y_vel;
+            dude.sprite.y += dude.yvel;
         }
 
         if (left)
         {
-            player_x_vel = Math.max(-MAX_SPEED, player_x_vel - RUN_ACCEL);
-            dude.sprite.x += player_x_vel;
-            dude.sprite.flipX = true;
+            dude.xvel = Math.max(-MAX_SPEED, dude.xvel - RUN_ACCEL);
+            dude.sprite.x += dude.xvel;
         }
         else if (right)
         {
-            player_x_vel = Math.min(MAX_SPEED, player_x_vel + RUN_ACCEL);
-            dude.sprite.x += player_x_vel;
-            dude.sprite.flipX = false;
+            dude.xvel = Math.min(MAX_SPEED, dude.xvel + RUN_ACCEL);
+            dude.sprite.x += dude.xvel;
         }
     
-        if (up)
+        if(up)
         {
-            player_y_vel = Math.max(-MAX_SPEED, player_y_vel - RUN_ACCEL);
-            dude.sprite.y += player_y_vel;
+            dude.yvel = Math.max(-MAX_SPEED, dude.yvel - RUN_ACCEL);
+            dude.sprite.y += dude.yvel;
         }
         else if (down)
         {
-            player_y_vel = Math.min(MAX_SPEED, player_y_vel + RUN_ACCEL);
-            dude.sprite.y += player_y_vel;
+            dude.yvel = Math.min(MAX_SPEED, dude.yvel + RUN_ACCEL);
+            dude.sprite.y += dude.yvel;
         }
 
+        if(this.input.mousePointer.x < dude.sprite.x)
+        {
+            dude.sprite.flipX = true;
+        }
+        else
+        {
+            dude.sprite.flipX = false;
+        }
+
+        console.log()
         if (this.input.activePointer.isDown)
         {
-            fire(this, this.input.mousePointer.x, this.input.mousePointer.y);
+
+            fire(this, this.input.mousePointer.x+this.cameras.main._scrollX, this.input.mousePointer.y+this.cameras.main._scrollY);
         }
 
         //bullets
@@ -127,7 +168,7 @@ function fire(game, mousex, mousey)
         const yvelocity = (mousey - dude.sprite.y);
         const vector_length = Math.sqrt(xvelocity**2 + yvelocity**2);
         bullets.push({   
-            sprite: game.add.sprite(dude.sprite.x, dude.sprite.y, 'bullet'),
+            sprite: game.add.sprite(dude.sprite.x+15, dude.sprite.y+15, 'bullet'),
             xvel: (xvelocity/vector_length) * bulletSpeed,
             yvel: (yvelocity/vector_length) * bulletSpeed,
             damage: 1,
@@ -142,9 +183,9 @@ function spawn_enemy(game)
     nextSpawn = game.time.now + spawnRate;
 
     baddies.push({   
-        sprite: game.add.sprite(dude.sprite.x + Math.random() * 100, dude.sprite.y + Math.random() * 100, 'baddie'),
-        xvel: Math.random(),
-        yvel: Math.random(),
+        sprite: game.add.sprite(dude.sprite.x + randomPlusOrMinus() * 100, dude.sprite.y + randomPlusOrMinus() * 100, 'baddie'),
+        xvel: randomPlusOrMinus(),
+        yvel: randomPlusOrMinus(),
         width: 80,
         height: 80,
         damage: 1,
@@ -205,12 +246,14 @@ function move_baddies(game)
             //if not invincable from being hit 
             if (nextInvince < game.time.now)
             {
-                dude.hp -= baddie.damage;
-                if(dude.hp <= 0)
+                dude.hp_current -= baddie.damage;
+                game.ui.stamina_display.setText("Health: " + dude.hp_current);
+                game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
+                if(dude.hp_current <= 0)
                 {
                     console.log("GAMEOVER");
                 }
-                nextInvince += hitInvince;
+                nextInvince = hitInvince + game.time.now;
                 game.tweens.addCounter({
 					duration: 100,
 					onUpdate: function()
@@ -227,10 +270,16 @@ function move_baddies(game)
     }
 
     //remove deleted baddies from array
-    for (var i = 0; i < baddies.length; i++) {
+    for (var i = 0; i < baddies.length; i++) 
+    {
         if (baddies[i].delete === true)
         {
             baddies.splice(i, 1);
         }
     }
 }
+
+function randomPlusOrMinus()
+{
+    return Math.random() < 0.5 ? -1 : 1;
+} 
