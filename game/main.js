@@ -1,4 +1,5 @@
 import scene_menu from './scenes/menu.js';
+import gameplay from "./scenes/gameplay.js";
 import {WIDTH_CANVAS, HEIGHT_CANVAS} from './globals.js';
 
 
@@ -15,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function()
 		parent: dom_container,
 		width: WIDTH_CANVAS,
 		height: HEIGHT_CANVAS,
-		scene: [scene_menu],
+		scene: [scene_menu, gameplay],
 		backgroundColor: COLOR_BACKGROUND
 	});
 
