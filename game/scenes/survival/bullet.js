@@ -60,7 +60,7 @@ export class Bullet
 	constructor()
 	{
 		this.position = new THREE.Vector3(0, 2, 0);
-		this.speed = new THREE.Vector3(0.01, 0.05, 0);
+		this.speed = new THREE.Vector3(0.01, 0.1, 0);
 		this.spin = 0;
 	}
 
