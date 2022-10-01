@@ -1,19 +1,17 @@
-import {WIDTH_CANVAS, HEIGHT_CANVAS} from '../globals.js';
+import {WIDTH_CANVAS, HEIGHT_CANVAS} from '../../globals.js';
 
-
-const R_AMBIENT = 1;
-const G_AMBIENT = 1;
-const B_AMBIENT = 1;
 
 const FOV = 70;
 const DEPTH_NEAR = 0.1;
 const DEPTH_FAR = 1000;
 
 const X_SPAWN = 0;
-const Z_SPAWN = -25;
+const Z_SPAWN = 25;
 
-const SPACING_LIGHTS = 20;
-const Y_LIGHTS = 10;
+const LIGHT_SPACING = 20;
+const LIGHT_Y = 10;
+const LIGHT_COLOR = 0x604040;
+const LIGHT_INTENSITY = 0.25;
 
 const GRAVITY = 0.75;
 const MOVESPEED = 1;
@@ -41,12 +39,28 @@ export default class SurvivalScene
 		const three = this.three = new THREE.Scene();
 		this.camera = new THREE.PerspectiveCamera(FOV, WIDTH_CANVAS/HEIGHT_CANVAS, DEPTH_NEAR, DEPTH_FAR);
 
-		const platform = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, PLATFORM_HEIGHT, PLATFORM_TESSELATION), new THREE.MeshBasicMaterial({color: 0x00ff00}));
+		const platform = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, PLATFORM_HEIGHT, PLATFORM_TESSELATION), new THREE.MeshStandardMaterial());
 		platform.position.y = -PLATFORM_HEIGHT/2;
 		three.add(platform);
 
+		const lights = [
+			new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY),
+			new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY),
+			new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY),
+			new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY)
+		];
+
+		lights[0].position.set(-LIGHT_SPACING, LIGHT_Y, LIGHT_SPACING);
+		lights[1].position.set(LIGHT_SPACING, LIGHT_Y, LIGHT_SPACING);
+		lights[2].position.set(-LIGHT_SPACING, LIGHT_Y, -LIGHT_SPACING);
+		lights[3].position.set(LIGHT_SPACING, LIGHT_Y, -LIGHT_SPACING);
+
+		for(const light of lights)
+			three.add(light);
+
+		this.camera.position.x = X_SPAWN;
 		this.camera.position.y = PLAYER_HEIGHT;
-		this.camera.position.z = 5;
+		this.camera.position.z = Z_SPAWN;
 	}
 
 	/**
@@ -110,19 +124,7 @@ export default class SurvivalScene
 // const platform = BABYLON.Mesh.CreateCylinder('platform', PLATFORM_HEIGHT, PLATFORM_DIAMETER, PLATFORM_DIAMETER, PLATFORM_TESSELATION, 1, babylonScene);
 // platform.position.y = -PLATFORM_HEIGHT/2;
 
-// const lights = [
-// 	new BABYLON.PointLight('light1', new BABYLON.Vector3(-SPACING_LIGHTS, Y_LIGHTS, SPACING_LIGHTS), babylonScene),
-// 	new BABYLON.PointLight('light2', new BABYLON.Vector3(SPACING_LIGHTS, Y_LIGHTS, SPACING_LIGHTS), babylonScene),
-// 	new BABYLON.PointLight('light3', new BABYLON.Vector3(-SPACING_LIGHTS, Y_LIGHTS, -SPACING_LIGHTS), babylonScene),
-// 	new BABYLON.PointLight('light4', new BABYLON.Vector3(SPACING_LIGHTS, Y_LIGHTS, -SPACING_LIGHTS), babylonScene)
-// ];
 
-// for(const light of lights)
-// {
-// 	light.intensity = 0.25;
-// 	light.diffuse = new BABYLON.Color3(0.5, 0.45, 0.45);
-// 	light.specular = new BABYLON.Color3(0.5, 0.45, 0.45);
-// }
 
 // const data = this.data = {
 // 	player: {
