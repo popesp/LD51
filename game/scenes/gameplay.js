@@ -47,7 +47,6 @@ export default new Phaser.Class({
         this.input.setDefaultCursor('url(assets/sprites/crosshair.png), pointer');
         dude.sprite = this.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1);
 
-        dude.sprite.setPosition(dude.x, dude.y);
         this.cameras.main.startFollow(dude.sprite);
         this.cameras.main.setBounds(0, 0, 2000, 2000);
         this.cameras.main.setZoom(1);
@@ -137,7 +136,6 @@ export default new Phaser.Class({
             dude.sprite.flipX = false;
         }
 
-        console.log()
         if (this.input.activePointer.isDown)
         {
 
