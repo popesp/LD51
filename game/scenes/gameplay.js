@@ -1,4 +1,4 @@
-import {WIDTH_CANVAS, PADDING_CANVAS, HEIGHT_CANVAS, FONT_DEFAULT, FONT_TITLE} from "../globals.js";
+import {WIDTH_CANVAS, PADDING_CANVAS, HEIGHT_CANVAS, FONT_DEFAULT, FONT_TITLE} from '../globals.js';
 
 const WIDTH_START_BUTTON = 200;
 const HEIGHT_START_BUTTON = 50;
@@ -35,13 +35,12 @@ export default new Phaser.Class({
 	},
 	preload: function()
 	{
-        this.load.spritesheet("dude",
-            "assets/sprites/dude3.png",
-            {frameWidth: 20, frameHeight: 16}
-        );
+		this.load.spritesheet('dude',
+			'assets/sprites/dude3.png',
+			{frameWidth: 20, frameHeight: 16});
 
-        this.load.image('bullet', 'assets/sprites/purple_ball.png');
-        this.load.image('baddie', 'assets/sprites/baddie.png');
+		this.load.image('bullet', 'assets/sprites/purple_ball.png');
+		this.load.image('baddie', 'assets/sprites/baddie.png');
 	},
 	create: function()
 	{
@@ -159,10 +158,10 @@ export default new Phaser.Class({
 });
 
 function fire(game, mousex, mousey)
-{    
-    if (game.time.now > nextFire)
-    {
-        nextFire = game.time.now + fireRate;
+{
+	if(game.time.now > nextFire)
+	{
+		nextFire = game.time.now + fireRate;
         
         const xvelocity = (mousex - dude.sprite.x);
         const yvelocity = (mousey - dude.sprite.y);
@@ -196,41 +195,42 @@ function spawn_enemy(game)
 
 function move_bullets()
 {
-    for (const bullet of bullets) 
-    {
-        if (bullet.life === 0)
-        {
-            bullet.delete = true;
-            bullet.sprite.destroy();
-        }
-        else
-        {
-            bullet.sprite.x += bullet.xvel;
-            bullet.sprite.y += bullet.yvel;
-            bullet.life --;
+	for(const bullet of bullets)
+	{
+		if(bullet.life === 0)
+		{
+			bullet.delete = true;
+			bullet.sprite.destroy();
+		}
+		else
+		{
+			bullet.sprite.x += bullet.xvel;
+			bullet.sprite.y += bullet.yvel;
+			bullet.life--;
 
-            //check for collsion
-            for (const baddie of baddies) 
-            {
-                if (Math.abs(bullet.sprite.x - baddie.sprite.x) < baddie.width/2 && Math.abs(bullet.sprite.y - baddie.sprite.y) < baddie.height/2)
-                {
-                    baddie.hp -= bullet.damage;
-                    if (baddie.hp <= 0)
-                    {
-                        baddie.delete = true;
-                        baddie.sprite.destroy();
-                    }
-                }
-            }
-        }
-    }
-    //remove deleted bullets from array
-    for (var i = 0; i < bullets.length; i++) {
-        if (bullets[i].delete === true)
-        {
-            bullets.splice(i, 1);
-        }
-    }
+			//check for collsion
+			for(const baddie of baddies)
+			{
+				if(Math.abs(bullet.sprite.x - baddie.sprite.x) < baddie.width/2 && Math.abs(bullet.sprite.y - baddie.sprite.y) < baddie.height/2)
+				{
+					baddie.hp -= bullet.damage;
+					if(baddie.hp <= 0)
+					{
+						baddie.delete = true;
+						baddie.sprite.destroy();
+					}
+				}
+			}
+		}
+	}
+	//remove deleted bullets from array
+	for(let i = 0; i < bullets.length; i++)
+	{
+		if(bullets[i].delete === true)
+		{
+			bullets.splice(i, 1);
+		}
+	}
 }
 
 function move_baddies(game)
