@@ -3,6 +3,6 @@
 		"browser": true
 	},
 	"globals": {
-		"Phaser": "readonly"
+		"THREE": "readonly"
 	}
 }
