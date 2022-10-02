@@ -4,13 +4,29 @@
         "height": 50,
         "width": 50,
         "move_speed": 4,
+        "hp": 1,
+        "damage": 1
+    },
+    "scampy": {
+        "name": "scampy",
+        "height": 60,
+        "width": 60,
+        "move_speed": 4,
         "hp": 5,
         "damage": 1
     },
-    "bug": {
-        "name": "bug",
+    "fomp": {
+        "name": "fomp",
         "height": 60,
         "width": 60,
+        "move_speed": 4,
+        "hp": 5,
+        "damage": 1
+    },
+    "peeker": {
+        "name": "peeker",
+        "height": 80,
+        "width": 80,
         "move_speed": 4,
         "hp": 5,
         "damage": 1

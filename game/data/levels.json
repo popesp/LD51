@@ -1,126 +1,166 @@
 [ 
     {
-    "level": 1,
-    "spawns": [
-        {
-            "info": "eyeball",
-            "x": 1050,
-            "y": 200,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "eyeball",
-            "x": 1000,
-            "y": 250,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "eyeball",
-            "x": 1050,
-            "y": 300,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "eyeball",
-            "x": 1000,
-            "y": 350,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "eyeball",
-            "x": 1050,
-            "y": 400,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "eyeball",
-            "x": 1000,
-            "y": 450,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "eyeball",
-            "x": 1050,
-            "y": 500,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "eyeball",
-            "x": 1000,
-            "y": 550,
-            "xvel": -2,
-            "yvel": 0
-        }
-    ] 
-},
+        "level": 1,
+        "spawns": [
+            {
+                "info": "eyeball",
+                "x": 1050,
+                "y": 200,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "eyeball",
+                "x": 1000,
+                "y": 250,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "eyeball",
+                "x": 1050,
+                "y": 300,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "eyeball",
+                "x": 1000,
+                "y": 350,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "eyeball",
+                "x": 1050,
+                "y": 400,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "eyeball",
+                "x": 1000,
+                "y": 450,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "eyeball",
+                "x": 1050,
+                "y": 500,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "eyeball",
+                "x": 1000,
+                "y": 550,
+                "xvel": -2,
+                "yvel": 0
+            }
+        ] 
+    },
 
-{
-    "level": 2,
-    "spawns": 
-    [
-        {
-            "info": "bug",
-            "x": 1050,
-            "y": 200,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "bug",
-            "x": 1000,
-            "y": 250,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "bug",
-            "x": 1050,
-            "y": 300,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "bug",
-            "x": 1000,
-            "y": 350,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "bug",
-            "x": 1050,
-            "y": 400,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "bug",
-            "x": 1000,
-            "y": 450,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "bug",
-            "x": 1050,
-            "y": 500,
-            "xvel": -2,
-            "yvel": 0
-        },
-        {
-            "info": "bug",
-            "x": 1000,
-            "y": 550,
-            "xvel": -2,
-            "yvel": 0
-        }
-    ] 
-}
+    {
+        "level": 2,
+        "spawns": 
+        [
+            {
+                "info": "scampy",
+                "x": 1050,
+                "y": 200,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "scampy",
+                "x": 1000,
+                "y": 250,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "scampy",
+                "x": 1050,
+                "y": 300,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "scampy",
+                "x": 1000,
+                "y": 350,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "scampy",
+                "x": 1050,
+                "y": 400,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "scampy",
+                "x": 1000,
+                "y": 450,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "scampy",
+                "x": 1050,
+                "y": 500,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "scampy",
+                "x": 1000,
+                "y": 550,
+                "xvel": -2,
+                "yvel": 0
+            }
+        ] 
+    },
+    {
+        "level": 3,
+        "spawns": 
+        [
+            {
+                "info": "fomp",
+                "x": 1050,
+                "y": 200,
+                "xvel": -2,
+                "yvel": 0
+            },
+            {
+                "info": "fomp",
+                "x": 1000,
+                "y": 250,
+                "xvel": -2,
+                "yvel": 0
+            }
+        ]
+    },
+    {
+        "level": 4,
+        "spawns": 
+        [
+            {
+                "info": "peeker",
+                "x": 1050,
+                "y": 200,
+                "xvel": -1,
+                "yvel": 0
+            },
+            {
+                "info": "peeker",
+                "x": 1000,
+                "y": 250,
+                "xvel": -1,
+                "yvel": 0
+            }
+        ]
+    }
 ]

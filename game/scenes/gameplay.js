@@ -33,6 +33,7 @@ const hitInvince = 1000;
 let timer = 1;
 let second_count;
 let nextInvince = 0;
+let animation_playing = false;
 
 const random = new PseudoRandom(69);
 export default new Phaser.Class({
@@ -51,10 +52,25 @@ export default new Phaser.Class({
         this.load.image('bullet', 'assets/sprites/rifle_bullet.png');
         this.load.image('smoke_trail', 'assets/sprites/smoke_trail.png');
         this.load.image('blood', 'assets/sprites/blood.png');
-        this.load.image('bug', 'assets/sprites/bug.png');
+        this.load.image('time_effect', 'assets/sprites/time_effect.png')
 
         this.load.spritesheet("eyeball",
             "assets/sprites/eyeball.png",
+            {frameWidth: 16, frameHeight: 16}
+        );
+
+        this.load.spritesheet("scampy",
+            "assets/sprites/scampy.png",
+            {frameWidth: 16, frameHeight: 16}
+        );
+
+        this.load.spritesheet("fomp",
+            "assets/sprites/fomp.png",
+            {frameWidth: 16, frameHeight: 16}
+        );
+
+        this.load.spritesheet("peeker",
+            "assets/sprites/peeker.png",
             {frameWidth: 16, frameHeight: 16}
         );
 
@@ -69,10 +85,29 @@ export default new Phaser.Class({
         //load anims
         this.anims.create({
             key: "eyeball",
-            frames: this.anims.generateFrameNumbers("eyeball", {start: 0, end: 25}),
+            frames: this.anims.generateFrameNumbers("eyeball", {start: 0, end: 24}),
             frameRate: 10,
             repeat: -1
         });
+        this.anims.create({
+            key: "scampy",
+            frames: this.anims.generateFrameNumbers("scampy", {start: 0, end: 8}),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: "fomp",
+            frames: this.anims.generateFrameNumbers("fomp", {start: 0, end: 9}),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: "peeker",
+            frames: this.anims.generateFrameNumbers("peeker", {start: 0, end: 9}),
+            frameRate: 15,
+            repeat: -1
+        });
+
 
         this.input.setDefaultCursor('url(assets/sprites/crosshair.png), pointer');
         dude.sprite = this.add.sprite(MAP_WIDTH/2, MAP_HEIGHT/2, 'dude').setDisplaySize(dude.width, dude.height).setDepth(1);
@@ -103,115 +138,121 @@ export default new Phaser.Class({
         startLoop(this);
 	},
     update: function()
-    {
-        // console.log(random.float(0, 5));
-        // random.lcg.reset();
-        const left = this.cursors.A.isDown || this.cursors.LEFT.isDown;
-        const right = this.cursors.D.isDown || this.cursors.RIGHT.isDown;
-        const up = this.cursors.W.isDown || this.cursors.UP.isDown;
-        const down = this.cursors.S.isDown || this.cursors.DOWN.isDown;
+    {   
+        if(animation_playing === false)
+        {
+            // console.log(random.float(0, 5));
+            // random.lcg.reset();
+            const left = this.cursors.A.isDown || this.cursors.LEFT.isDown;
+            const right = this.cursors.D.isDown || this.cursors.RIGHT.isDown;
+            const up = this.cursors.W.isDown || this.cursors.UP.isDown;
+            const down = this.cursors.S.isDown || this.cursors.DOWN.isDown;
 
-        stored_actions.push(
+            stored_actions.push(
+                {
+                    x: dude.sprite.x,
+                    y: dude.sprite.y,
+                    fire: this.input.activePointer.isDown && this.time.now > nextFire,
+                    mousex: this.input.mousePointer.x+this.cameras.main._scrollX,
+                    mousey: this.input.mousePointer.y+this.cameras.main._scrollY,
+                    time: this.time.now
+                }
+            )
+            if(left === right)
             {
-                x: dude.sprite.x,
-                y: dude.sprite.y,
-                fire: this.input.activePointer.isDown && this.time.now > nextFire,
-                mousex: this.input.mousePointer.x+this.cameras.main._scrollX,
-                mousey: this.input.mousePointer.y+this.cameras.main._scrollY,
-                time: this.time.now
+                if(dude.xvel > 0)
+                    dude.xvel = Math.max(0, dude.xvel - RUN_DECEL);
+                else
+                    dude.xvel = Math.min(0, dude.xvel + RUN_DECEL);
+            
+                dude.sprite.x += dude.xvel;
             }
-        )
-        if(left === right)
-        {
-            if(dude.xvel > 0)
-                dude.xvel = Math.max(0, dude.xvel - RUN_DECEL);
-            else
-                dude.xvel = Math.min(0, dude.xvel + RUN_DECEL);
+
+            if(up === down)
+            {
+                if(dude.yvel > 0)
+                    dude.yvel = Math.max(0, dude.yvel - RUN_DECEL);
+                else
+                    dude.yvel = Math.min(0, dude.yvel + RUN_DECEL);
+
+                dude.sprite.y += dude.yvel;
+            }
+
+            if (left)
+            {
+                dude.xvel = Math.max(-MAX_SPEED, dude.xvel - RUN_ACCEL);
+                dude.sprite.x += dude.xvel;
+            }
+            else if (right)
+            {
+                dude.xvel = Math.min(MAX_SPEED, dude.xvel + RUN_ACCEL);
+                dude.sprite.x += dude.xvel;
+            }
         
-            dude.sprite.x += dude.xvel;
-        }
+            if(up)
+            {
+                dude.yvel = Math.max(-MAX_SPEED, dude.yvel - RUN_ACCEL);
+                dude.sprite.y += dude.yvel;
+            }
+            else if (down)
+            {
+                dude.yvel = Math.min(MAX_SPEED, dude.yvel + RUN_ACCEL);
+                dude.sprite.y += dude.yvel;
+            }
 
-        if(up === down)
-        {
-            if(dude.yvel > 0)
-                dude.yvel = Math.max(0, dude.yvel - RUN_DECEL);
+            if(dude.sprite.x - dude.width/2 < 0)
+            {
+                dude.sprite.x = dude.width/2;
+            }
+            if(dude.sprite.x + dude.width/2 > MAP_WIDTH)
+            {
+                dude.sprite.x = MAP_WIDTH - dude.width/2;
+            }
+
+            if(dude.sprite.y - dude.height/2 - 50 < 0)
+            {
+                dude.sprite.y = dude.height/2 + 50;
+            }
+            if(dude.sprite.y + dude.height/2 > MAP_HEIGHT)
+            {
+                dude.sprite.y = MAP_HEIGHT - dude.height/2;
+            }
+
+            if(this.input.mousePointer.x + this.cameras.main._scrollX < dude.sprite.x)
+            {
+                dude.sprite.flipX = true;
+            }
             else
-                dude.yvel = Math.min(0, dude.yvel + RUN_DECEL);
+            {
+                dude.sprite.flipX = false;
+            }
 
-            dude.sprite.y += dude.yvel;
-        }
+            if (this.input.activePointer.isDown)
+            {
+                fire(this, this.input.mousePointer.x+this.cameras.main._scrollX, this.input.mousePointer.y+this.cameras.main._scrollY, dude.sprite.x, dude.sprite.y, true);
+            }
 
-        if (left)
-        {
-            dude.xvel = Math.max(-MAX_SPEED, dude.xvel - RUN_ACCEL);
-            dude.sprite.x += dude.xvel;
+            move_bullets(this);
+            move_baddies(this);
+            move_ghosts(this);
         }
-        else if (right)
-        {
-            dude.xvel = Math.min(MAX_SPEED, dude.xvel + RUN_ACCEL);
-            dude.sprite.x += dude.xvel;
-        }
-    
-        if(up)
-        {
-            dude.yvel = Math.max(-MAX_SPEED, dude.yvel - RUN_ACCEL);
-            dude.sprite.y += dude.yvel;
-        }
-        else if (down)
-        {
-            dude.yvel = Math.min(MAX_SPEED, dude.yvel + RUN_ACCEL);
-            dude.sprite.y += dude.yvel;
-        }
-
-        if(dude.sprite.x - dude.width/2 < 0)
-        {
-            dude.sprite.x = dude.width/2;
-        }
-        if(dude.sprite.x + dude.width/2 > MAP_WIDTH)
-        {
-            dude.sprite.x = MAP_WIDTH - dude.width/2;
-        }
-
-        if(dude.sprite.y - dude.height/2 - 50 < 0)
-        {
-            dude.sprite.y = dude.height/2 + 50;
-        }
-        if(dude.sprite.y + dude.height/2 > MAP_HEIGHT)
-        {
-            dude.sprite.y = MAP_HEIGHT - dude.height/2;
-        }
-
-        if(this.input.mousePointer.x + this.cameras.main._scrollX < dude.sprite.x)
-        {
-            dude.sprite.flipX = true;
-        }
-        else
-        {
-            dude.sprite.flipX = false;
-        }
-
-        if (this.input.activePointer.isDown)
-        {
-            fire(this, this.input.mousePointer.x+this.cameras.main._scrollX, this.input.mousePointer.y+this.cameras.main._scrollY, dude.sprite.x, dude.sprite.y, true);
-        }
-
-        move_bullets(this);
-        move_baddies(this);
-        move_ghosts(this);
 
     }
 });
 
 function addSecond()
 {
-    if(timer === 4)
+    if(animation_playing === false)
     {
-        restartTimeLoop(this, false);     
-    }
-    else
-    {
-        this.ui.text_level.setText(timer + "     Level: " + dude.level);
-        timer ++;
+        if(timer === 4)
+        {
+            restartTimeLoop(this, false);     
+        }
+        else
+        {
+            this.ui.text_level.setText(timer + "     Level: " + dude.level);
+            timer ++;
+        }
     }
 }
 
@@ -446,62 +487,92 @@ function startLoop(game)
         lifespan: 1000,
         gravityY: 0
     });
+    game.time_effect_particles = game.add.particles("time_effect");
+    game.emitter_time_effect = game.time_effect_particles.createEmitter({
+        speed: {min: 5, max: 500},
+        angle: {min: 0, max: 360},
+        alpha: {start: 1, end: 0},
+        scale: 3,
+        blendMode: "NORMAL",
+        on: false,
+        lifespan: 1500,
+        gravityY: 0
+    });
 }
 
 function restartTimeLoop(game, nextlevel)
 {
-    timer = 1;
-    game.ui.text_level.setText(timer + "     Level: " + dude.level);
-    dude.hp_current = dude.hp_max;
-    game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
-    game.ui.health_display.setText("Health: " + dude.hp_current);
-    dude.sprite.x = MAP_WIDTH/2 - ((ghosts.length+1) * dude.width);
-    dude.sprite.y = MAP_HEIGHT/2;
-
-    //spawn ghost
     if(!nextlevel)
     {
-        ghosts.push({
-            sprite: game.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1),
-            actions: stored_actions.slice()
-        })
-    }
-    stored_actions = [];
-    
-    //remove bullets
-    game.blood_particles.destroy();
-    game.smoke_trail_particles.destroy();
-    for(const bullet of bullets)
-    {
-        bullet.sprite.destroy();
-    }
-    bullets = [];
+        animation_playing = true;
+        second_count.paused  = true;
+        game.emitter_time_effect.explode(80, dude.sprite.x, dude.sprite.y);
 
-    //remove baddies
-    for (var i = 0; i < baddies.length; i++) 
-    {
-        baddies[i].sprite.destroy();
+        setTimeout(function(){
+            ghosts.push({
+                sprite: game.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1),
+                actions: stored_actions.slice()
+            })
+            animation_playing = false;
+            second_count.paused  = false;
+            restartTimeLoop(game, true);
+        },1000);
     }
-    baddies = [];
-    //respawn baddies
-    for(let i = 0; i < LEVELS[dude.level-1].spawns.length; i++)
+    else
     {
-        spawn_enemy(game, LEVELS[dude.level-1].spawns[i]);
+        timer = 1;
+        game.ui.text_level.setText(timer + "     Level: " + dude.level);
+        dude.hp_current = dude.hp_max;
+        game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
+        game.ui.health_display.setText("Health: " + dude.hp_current);
+        dude.sprite.x = MAP_WIDTH/2 - ((ghosts.length+1) * dude.width);
+        dude.sprite.y = MAP_HEIGHT/2;
+        stored_actions = [];
+        
+        //remove bullets
+        game.blood_particles.destroy();
+        game.smoke_trail_particles.destroy();
+        game.time_effect_particles.destroy();
+        for(const bullet of bullets)
+        {
+            bullet.sprite.destroy();
+        }
+        bullets = [];
+
+        //remove baddies
+        for (var i = 0; i < baddies.length; i++) 
+        {
+            baddies[i].sprite.destroy();
+        }
+        baddies = [];
+        //respawn baddies
+        for(let i = 0; i < LEVELS[dude.level-1].spawns.length; i++)
+        {
+            spawn_enemy(game, LEVELS[dude.level-1].spawns[i]);
+        }
+        game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
+        startLoop(game);
     }
-    game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
-    startLoop(game);
 }
 
 function levelComplete(game)
 {
-    dude.level ++;
-    for(const ghost of ghosts)
-    {
-        ghost.sprite.destroy();
-    }
-    ghosts = [];
-    stored_actions = [];
-    restartTimeLoop(game, true)
+    animation_playing = true;
+    second_count.paused  = true;
+    const level_done_text = game.add.text(WIDTH_CANVAS/2 , HEIGHT_CANVAS/2, "LEVEL COMPLETE", {fontFamily: FONT_TITLE, color: "white", fontSize: "60px"}).setOrigin(0.5);
+    game.emitter_time_effect.explode(300, dude.sprite.x, dude.sprite.y);
+    setTimeout(function(){
+        level_done_text.setText("");
+        second_count.paused  = false;
+        animation_playing = false;
+        
+        dude.level ++;
+        for(const ghost of ghosts)
+        {
+            ghost.sprite.destroy();
+        }
+        ghosts = [];
+        stored_actions = [];
+        restartTimeLoop(game, true)
+    },3000);
 }
-
-
