@@ -176,12 +176,12 @@ function fire(game, mousex, mousey, spritex, spritey)
 	{
 		nextFire = game.time.now + fireRate;
         
-        const xvelocity = (mousex - spritex);
-        const yvelocity = (mousey - spritey);
+        const xvelocity = (mousex - spritex + 15);
+        const yvelocity = (mousey - spritey + 15);
         // const angle = Math.atan2(yvelocity, xvelocity);
         const vector_length = Math.sqrt(xvelocity**2 + yvelocity**2);
         bullets.push({   
-            sprite: game.add.sprite(spritex+ 15, spritey + 15, 'bullet'),
+            sprite: game.add.sprite(spritex + (xvelocity/vector_length)*50, spritey + (yvelocity/vector_length)*50, 'bullet'),
             xvel: (xvelocity/vector_length) * bulletSpeed,
             yvel: (yvelocity/vector_length) * bulletSpeed,
             damage: 1,
