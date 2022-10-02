@@ -5,7 +5,13 @@
 		<title>LD51</title>
 		<link rel="shortcut icon" href="assets/favicon.ico"/>
 		<link rel="stylesheet" href="styles/main.css">
-		<script src="lib/three.js"></script>
+		<script type="importmap">
+		{
+			"imports": {
+				"three": "/lib/three.js"
+			}
+		}
+		</script>
 		<script type="module" src="main.js"></script>
 	</head>
 	<body>

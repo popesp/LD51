@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import InputManager from './input.js';
 
 
@@ -8,38 +9,65 @@ const AXIS_Y = new THREE.Vector3(0, 1, 0);
 const PLAYER_HEIGHT = 2;
 const PLAYER_SPEED = 3;
 const PLAYER_ACCTIME = 0.08;
-const PLAYER_JUMP = 3;
+// const PLAYER_JUMP = 3;
 const DECEL = -70;
 const GRAVITY = 0.01;
+const Y_FIREOFFSET = -0.5;
 
 const pitch = new THREE.Quaternion();
 const yaw = new THREE.Quaternion();
 const direction = new THREE.Vector3();
 const temp = new THREE.Vector3();
 
-
 export default class Player
 {
-	constructor(camera, platform_radius, x_spawn = 0, z_spawn = 0)
+	/**
+	 * Create a new player.
+	 * @param {SurvivalScene} scene The scene containing the player
+	 * @param {THREE.PerspectiveCamera} camera The camera to attach to the player
+	 * @param {number} platform_radius The radius of the platform
+	 * @param {number} [x_spawn = 0] Spawn x coordinate
+	 * @param {number} [z_spawn = 0] Spawn z coordinate
+	 */
+	constructor(scene, camera, platform_radius, x_spawn = 0, z_spawn = 0)
 	{
+		/** @type {SurvivalScene} */
+		this.scene = scene;
+
+		/** @type {THREE.PerspectiveCamera} */
 		this.camera = camera;
+
+		/** @type {THREE.Vector3} */
 		this.position = new THREE.Vector3(x_spawn, 0, z_spawn);
+
+		/** @type {THREE.Vector3} */
+		this.speed = new THREE.Vector3();
+
+		/** @type {THREE.Euler} */
+		this.angles = new THREE.Euler();
+
+		/** @type {number} */
+		this.platform_radius = platform_radius;
+
+		/** @type {InputManager} */
+		this.input = new InputManager();
+
 		camera.position.x = x_spawn;
 		camera.position.y = PLAYER_HEIGHT;
 		camera.position.z = z_spawn;
 
-		this.speed = new THREE.Vector3();
-		this.angles = new THREE.Euler();
-		this.platform_radius = platform_radius;
-
-		this.input = new InputManager();
-
+		/** @type {boolean} */
 		this.mouselock = false;
+
 		this.input.click(() =>
 		{
 			if(this.mouselock)
 			{
-				// TODO
+				this.camera.getWorldDirection(direction);
+				temp.copy(this.camera.position);
+				temp.y += Y_FIREOFFSET;
+
+				scene.spawnBullet(temp, direction);
 			}
 			else
 				document.body.requestPointerLock();
@@ -69,6 +97,10 @@ export default class Player
 		});
 	}
 
+	/**
+	 * Update the player for this timestep.
+	 * @param {number} dt Seconds elapsed since last update
+	 */
 	update(dt)
 	{
 		const forward = (this.input.getKey('KeyS') ? 1 : 0) - (this.input.getKey('KeyW') ? 1 : 0);
@@ -96,5 +128,13 @@ export default class Player
 		this.camera.position.x = this.position.x;
 		this.camera.position.y = this.position.y + PLAYER_HEIGHT;
 		this.camera.position.z = this.position.z;
+	}
+
+	/**
+	 * Destroy the player.
+	 */
+	destroy()
+	{
+		this.input.clear();
 	}
 }

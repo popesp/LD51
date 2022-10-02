@@ -1,7 +1,8 @@
+import * as THREE from 'three';
 import {WIDTH_CANVAS, HEIGHT_CANVAS} from './globals.js';
 
 
-const SECONDS_PER_MS = 0.0001;
+const SECONDS_PER_MS = 0.001;
 const DT_MIN = 0.033333333333;
 
 

@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import {bulletMesh, Bullet} from './bullet.js';
 import Player from './player.js';
 import {WIDTH_CANVAS, HEIGHT_CANVAS} from '../../globals.js';
@@ -20,11 +21,18 @@ const PLATFORM_RADIUS = 40;
 const PLATFORM_HEIGHT = 1000000;
 const PLATFORM_TESSELATION = 128;
 
+const MAX_BULLETS = 100;
+
 
 export default class SurvivalScene
 {
+	/**
+	 * Create a new scene to run the main gameplay loop.
+	 * @param {Game} game The game instance running the scene
+	 */
 	constructor(game)
 	{
+		/** @type {Game} */
 		this.game = game;
 
 		game.renderer.shadowMap.enabled = true;
@@ -32,18 +40,25 @@ export default class SurvivalScene
 
 		/** @type {THREE.Scene} */
 		const three = this.three = new THREE.Scene();
+
+		/** @type {THREE.PerspectiveCamera} */
 		this.camera = new THREE.PerspectiveCamera(FOV, WIDTH_CANVAS/HEIGHT_CANVAS, DEPTH_NEAR, DEPTH_FAR);
 
-		this.player = new Player(this.camera, PLATFORM_RADIUS, X_SPAWN, Z_SPAWN);
+		/** @type {Player} */
+		this.player = new Player(this, this.camera, PLATFORM_RADIUS, X_SPAWN, Z_SPAWN);
 
+		/** @type {THREE.Mesh} */
 		const platform = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, PLATFORM_HEIGHT, PLATFORM_TESSELATION), new THREE.MeshStandardMaterial());
 		platform.position.y = -PLATFORM_HEIGHT/2;
 		platform.receiveShadow = true;
 		three.add(platform);
 
-		this.bulletMesh = bulletMesh();
+		/** @type {THREE.InstancedMesh} */
+		this.bulletMesh = bulletMesh(MAX_BULLETS);
 		three.add(this.bulletMesh);
-		this.bullets = [new Bullet()];
+
+		/** @type {Bullet[]} */
+		this.bullets = new Array(MAX_BULLETS);
 
 		const lights = [
 			new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY, LIGHT_DISTANCE),
@@ -65,6 +80,21 @@ export default class SurvivalScene
 	}
 
 	/**
+	 * Attempt to spawn a bullet in the scene.
+	 * @param {THREE.Vector3} position Initial position of the bullet
+	 * @param {THREE.Vector3} direction Initial movement direction of the bullet
+	 */
+	spawnBullet(position, direction)
+	{
+		for(let index_bullet = 0; index_bullet < this.bullets.length; ++index_bullet)
+			if(!this.bullets[index_bullet]?.alive)
+			{
+				this.bullets[index_bullet] = new Bullet(position, direction);
+				break;
+			}
+	}
+
+	/**
 	 * Update the scene.
 	 * @param {number} dt Elapsed seconds since last update
 	 */
@@ -75,28 +105,36 @@ export default class SurvivalScene
 		const dummy = new THREE.Object3D();
 		dummy.rotation.order = 'YXZ';
 
-		this.bullets.forEach((bullet, index) =>
+		this.bulletMesh.count = 0;
+		for(const bullet of this.bullets)
 		{
-			bullet.update(dt);
+			bullet?.update(dt);
+			if(bullet?.alive)
+			{
+				const xz = Math.sqrt(bullet.speed.x**2 + bullet.speed.z**2);
 
-			const xz = Math.sqrt(bullet.speed.x**2 + bullet.speed.z**2);
+				dummy.position.copy(bullet.position);
+				dummy.rotation.x = Math.atan2(-bullet.speed.y, xz);
+				dummy.rotation.y = Math.atan2(bullet.speed.x, bullet.speed.z);
+				dummy.rotation.z = bullet.spin;
 
-			dummy.position.copy(bullet.position);
-			dummy.rotation.x = Math.atan(-bullet.speed.y/xz);
-			dummy.rotation.y = Math.atan(bullet.speed.x/bullet.speed.z);
-			dummy.rotation.z = bullet.spin;
-
-			dummy.updateMatrix();
-			this.bulletMesh.setMatrixAt(index, dummy.matrix);
-		});
+				dummy.updateMatrix();
+				this.bulletMesh.setMatrixAt(this.bulletMesh.count++, dummy.matrix);
+			}
+		}
 
 		this.bulletMesh.instanceMatrix.needsUpdate = true;
 
 		this.game.renderer.render(this.three, this.camera);
 	}
 
+	/**
+	 * Destroy the scene.
+	 */
 	destroy()
 	{
 		this.three.clear();
+		this.player.destroy();
+		this.bulletMesh.dispose();
 	}
 }
