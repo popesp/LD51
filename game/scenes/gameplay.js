@@ -181,7 +181,7 @@ function fire(game, mousex, mousey, spritex, spritey)
         // const angle = Math.atan2(yvelocity, xvelocity);
         const vector_length = Math.sqrt(xvelocity**2 + yvelocity**2);
         bullets.push({   
-            sprite: game.add.sprite(spritex, spritey, 'bullet'),
+            sprite: game.add.sprite(spritex+ 15, spritey + 15, 'bullet'),
             xvel: (xvelocity/vector_length) * bulletSpeed,
             yvel: (yvelocity/vector_length) * bulletSpeed,
             damage: 1,
@@ -296,7 +296,7 @@ function move_ghosts(game)
             ghosts[i].sprite.flipX = false;
         }
 
-        ghosts[i].actions.push(ghosts[i].actions.splice(0, 1));
+        ghosts[i].actions.push(ghosts[i].actions.shift());
     }
 }
 
@@ -310,8 +310,9 @@ function restartTimeLoop(game)
     //spawn ghost
     ghosts.push({
         sprite: game.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1),
-        actions: stored_actions
+        actions: stored_actions.slice()
     })
+
     stored_actions = [];
     
     //remove baddies
