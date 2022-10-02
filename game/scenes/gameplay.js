@@ -9,7 +9,7 @@ const MAP_HEIGHT = 1000;
 // PHYSICS
 const RUN_ACCEL = 0.2;
 const RUN_DECEL = 1;
-const MAX_SPEED = 6;
+const MAX_SPEED = 5;
 
 const dude = {
     xvel: 0,
@@ -25,10 +25,10 @@ let bullets = [];
 let baddies = [];
 let ghosts = [];
 let stored_actions = [];
-const fireRate = 200;
+const fireRate = 400;
 let nextFire = 0;
 const spawnRate = 1000;
-const bulletSpeed = 8;
+const bulletSpeed = 12;
 const hitInvince = 1000;
 let timer = 1;
 let second_count;
@@ -47,12 +47,33 @@ export default new Phaser.Class({
 			'assets/sprites/dude3.png',
 			{frameWidth: 20, frameHeight: 16});
 
-		this.load.image('bullet', 'assets/sprites/purple_ball.png');
-		this.load.image('crabby', 'assets/sprites/baddie.png');
+		// this.load.image('bullet', 'assets/sprites/purple_ball.png');
+        this.load.image('bullet', 'assets/sprites/rifle_bullet.png');
+        this.load.image('smoke_trail', 'assets/sprites/smoke_trail.png');
+        this.load.image('blood', 'assets/sprites/blood.png');
         this.load.image('bug', 'assets/sprites/bug.png');
+
+        this.load.spritesheet("eyeball",
+            "assets/sprites/eyeball.png",
+            {frameWidth: 16, frameHeight: 16}
+        );
+
+        //soundfx
+        this.load.audio("sniper", "assets/soundfx/sniper.mp3");
 	},
 	create: function()
 	{
+        //load sounds
+        this.sound.add("sniper");
+
+        //load anims
+        this.anims.create({
+            key: "eyeball",
+            frames: this.anims.generateFrameNumbers("eyeball", {start: 0, end: 25}),
+            frameRate: 10,
+            repeat: -1
+        });
+
         this.input.setDefaultCursor('url(assets/sprites/crosshair.png), pointer');
         dude.sprite = this.add.sprite(MAP_WIDTH/2, MAP_HEIGHT/2, 'dude').setDisplaySize(dude.width, dude.height).setDepth(1);
 
@@ -78,11 +99,13 @@ export default new Phaser.Class({
             this.ui[key_object].setScrollFactor(0).setDepth(4);
 
         second_count = this.time.addEvent({ delay: 1000, callback: addSecond, callbackScope: this, loop: true });
+
+        startLoop(this);
 	},
     update: function()
     {
-        console.log(random.float(0, 5));
-        random.lcg.reset();
+        // console.log(random.float(0, 5));
+        // random.lcg.reset();
         const left = this.cursors.A.isDown || this.cursors.LEFT.isDown;
         const right = this.cursors.D.isDown || this.cursors.RIGHT.isDown;
         const up = this.cursors.W.isDown || this.cursors.UP.isDown;
@@ -181,7 +204,7 @@ export default new Phaser.Class({
 
 function addSecond()
 {
-    if(timer === 11)
+    if(timer === 4)
     {
         restartTimeLoop(this, false);     
     }
@@ -198,7 +221,12 @@ function fire(game, mousex, mousey, spritex, spritey, reload)
 	{
         if(reload === true)
         {
+            // game.sound.play("sniper", {volume: 0.05});
             nextFire = game.time.now + fireRate;
+        }
+        else
+        {
+            // game.sound.play("sniper", {volume: 0.02});
         }
         
         const xvelocity = (mousex - spritex + 15);
@@ -220,7 +248,7 @@ function spawn_enemy(game, spawn)
 {
     const baddie = BADDIES[spawn.info]
     baddies.push({   
-        sprite: game.add.sprite(spawn.x, spawn.y, baddie.name),
+        sprite: game.add.sprite(spawn.x, spawn.y),
         xvel: spawn.xvel,
         yvel: spawn.yvel,
         width: baddie.width,
@@ -229,6 +257,8 @@ function spawn_enemy(game, spawn)
         hp: baddie.hp,
         delete: false
     })
+
+    baddies[baddies.length-1].sprite.anims.play(baddie.name).setDisplaySize(baddie.width, baddie.height);
 }
 
 function move_bullets(game)
@@ -242,6 +272,7 @@ function move_bullets(game)
 		}
 		else
 		{
+            game.emitter_smoke_trail.explode(10, bullet.sprite.x, bullet.sprite.y);
 			bullet.sprite.x += bullet.xvel;
 			bullet.sprite.y += bullet.yvel;
 			bullet.life--;
@@ -251,6 +282,7 @@ function move_bullets(game)
 			{
 				if(Math.abs(bullet.sprite.x - baddie.sprite.x) < baddie.width/2 && Math.abs(bullet.sprite.y - baddie.sprite.y) < baddie.height/2)
 				{
+                    game.emitter_blood.explode(5, bullet.sprite.x, bullet.sprite.y);
 					baddie.hp -= bullet.damage;
                     bullet.delete = true;
                     bullet.sprite.destroy();
@@ -390,6 +422,32 @@ function playerDamage(game, damage)
     }
 }
 
+function startLoop(game)
+{
+    game.blood_particles = game.add.particles("blood");
+    game.emitter_blood = game.blood_particles.createEmitter({
+        speed: {min: 20, max: 200},
+        angle: {min: 200, max: 300},
+        alpha: {start: 1, end: 0},
+        scale: 3,
+        blendMode: "NORMAL",
+        on: false,
+        lifespan: 1000,
+        gravityY: 200
+    });
+    game.smoke_trail_particles = game.add.particles("smoke_trail");
+    game.emitter_smoke_trail = game.smoke_trail_particles.createEmitter({
+        speed: {min: 5, max: 10},
+        angle: {min: 0, max: 360},
+        alpha: {start: 1, end: 0},
+        scale: 1,
+        blendMode: "NORMAL",
+        on: false,
+        lifespan: 1000,
+        gravityY: 0
+    });
+}
+
 function restartTimeLoop(game, nextlevel)
 {
     timer = 1;
@@ -397,8 +455,8 @@ function restartTimeLoop(game, nextlevel)
     dude.hp_current = dude.hp_max;
     game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
     game.ui.health_display.setText("Health: " + dude.hp_current);
-    dude.sprite.x = WIDTH_CANVAS/2;
-    dude.sprite.y = HEIGHT_CANVAS/2;
+    dude.sprite.x = MAP_WIDTH/2 - ((ghosts.length+1) * dude.width);
+    dude.sprite.y = MAP_HEIGHT/2;
 
     //spawn ghost
     if(!nextlevel)
@@ -410,6 +468,15 @@ function restartTimeLoop(game, nextlevel)
     }
     stored_actions = [];
     
+    //remove bullets
+    game.blood_particles.destroy();
+    game.smoke_trail_particles.destroy();
+    for(const bullet of bullets)
+    {
+        bullet.sprite.destroy();
+    }
+    bullets = [];
+
     //remove baddies
     for (var i = 0; i < baddies.length; i++) 
     {
@@ -422,6 +489,7 @@ function restartTimeLoop(game, nextlevel)
         spawn_enemy(game, LEVELS[dude.level-1].spawns[i]);
     }
     game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
+    startLoop(game);
 }
 
 function levelComplete(game)
@@ -431,11 +499,6 @@ function levelComplete(game)
     {
         ghost.sprite.destroy();
     }
-    for(const bullet of bullets)
-    {
-        bullet.sprite.destroy();
-    }
-    bullets = [];
     ghosts = [];
     stored_actions = [];
     restartTimeLoop(game, true)

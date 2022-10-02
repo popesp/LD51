@@ -1,8 +1,8 @@
 {
-    "crabby": {
-        "name": "crabby",
-        "height": 60,
-        "width": 60,
+    "eyeball": {
+        "name": "eyeball",
+        "height": 50,
+        "width": 50,
         "move_speed": 4,
         "hp": 5,
         "damage": 1
