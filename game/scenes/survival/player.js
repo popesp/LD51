@@ -37,10 +37,12 @@ export default class Player
 		this.mouselock = false;
 		this.input.click(() =>
 		{
-			if(!this.mouselock)
+			if(this.mouselock)
+			{
+				// TODO
+			}
+			else
 				document.body.requestPointerLock();
-			
-			
 		});
 
 		document.addEventListener('pointerlockchange', () =>

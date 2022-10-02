@@ -15,12 +15,12 @@ const TYPEMAP = {
 };
 
 
-http.createServer(function(request, response)
+http.createServer((request, response) =>
 {
 	const filename = `game${request.url === '/' ? '/index.html' : request.url}`;
 	const type = TYPEMAP[path.extname(filename)] ?? 'text/html';
 
-	fs.readFile(filename, function(error, content)
+	fs.readFile(filename, (error, content) =>
 	{
 		if(error === null)
 		{
