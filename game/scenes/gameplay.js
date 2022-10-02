@@ -30,7 +30,8 @@ let nextFire = 0;
 const spawnRate = 1000;
 const bulletSpeed = 12;
 const hitInvince = 1000;
-let timer = 1;
+const time_limit = 4;
+let timer = time_limit;
 let second_count;
 let nextInvince = 0;
 let animation_playing = false;
@@ -126,8 +127,9 @@ export default new Phaser.Class({
             bar_bg: this.add.graphics().fillStyle(0xcc2418, 1).fillRect(0, -2, 204, 38).setPosition(14, 14),
             bar: this.add.graphics().fillStyle(0xebb134, 1).fillRect(0, 0, 200, 30).setPosition(16, 16),
             health_display: this.add.text(52, 18, "Health: " + dude.hp_max, {fontSize: "24px", fill: "#000"}),
-            text_level: this.add.text(1000, 18, + timer + "     Level: " + dude.level, {fontSize: "24px", fill: "#ffffff"}),
-            baddies_left: this.add.text(500, 18, "Enemies Remaining " + baddies.length, {fontSize: "24px", fill: "#ffffff"})
+            text_timer: this.add.text(500, 18, + timer + " SECONDS REMAIN", {fontSize: "24px", fill: "#ffffff"}),
+            baddies_left: this.add.text(WIDTH_CANVAS-300, 18, "Enemies Remaining " + baddies.length, {fontSize: "24px", fill: "#ffffff"}),
+            text_level: this.add.text(WIDTH_CANVAS-150, HEIGHT_CANVAS - 30, "LEVEL: " + dude.level, {fontSize: "24px", fill: "#ffffff"})
         };
 
         for(const key_object in this.ui)
@@ -245,14 +247,15 @@ function addSecond()
 {
     if(animation_playing === false)
     {
-        if(timer === 11)
+        if(timer === 0)
         {
+            this.ui.text_timer.setText(timer + " SECONDS REMAIN");
             restartTimeLoop(this, false);     
         }
         else
         {
-            this.ui.text_level.setText(timer + "     Level: " + dude.level);
-            timer ++;
+            this.ui.text_timer.setText(timer + " SECONDS REMAIN");
+            timer --;
         }
     }
 }
@@ -369,6 +372,7 @@ function move_bullets(game)
                         onComplete: function()
                         {
                             ghost.sprite.clearTint();
+                            ghost.sprite.tint = 0xa5adb5;
                         }
                     });
                 }
@@ -397,6 +401,26 @@ function move_baddies(game)
         {
             playerDamage(game, baddie.damage);
         }
+        //check if ghost hit
+        for(const ghost of ghosts)
+        {
+            if(Math.abs(baddie.sprite.x - ghost.sprite.x) < dude.width/2 && Math.abs(baddie.sprite.y - ghost.sprite.y) < dude.height/2 && nextInvince < game.time.now)
+            {
+                playerDamage(game, baddie.damage);
+                game.tweens.addCounter({
+                    duration: 100,
+                    onUpdate: function()
+                    {
+                        ghost.sprite.setTintFill(0xFFFFFF);
+                    },
+                    onComplete: function()
+                    {
+                        ghost.sprite.clearTint();
+                        ghost.sprite.tint = 0xa5adb5;
+                    }
+                });
+            }
+        }
     }
 
     //remove deleted baddies from array
@@ -418,6 +442,7 @@ function move_ghosts(game)
 {  
     for(var i = 0; i < ghosts.length; i++)
     {
+        console.log(ghosts[i].actions.length);
         ghosts[i].sprite.x = ghosts[i].actions[0].x;
         ghosts[i].sprite.y = ghosts[i].actions[0].y;
         if(ghosts[i].actions[0].fire)
@@ -513,7 +538,8 @@ function restartTimeLoop(game, nextlevel)
             ghosts.push({
                 sprite: game.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1),
                 actions: stored_actions.slice()
-            })
+            });
+            ghosts[ghosts.length-1].sprite.tint = 0xa5adb5;
             animation_playing = false;
             second_count.paused  = false;
             restartTimeLoop(game, true);
@@ -521,8 +547,8 @@ function restartTimeLoop(game, nextlevel)
     }
     else
     {
-        timer = 1;
-        game.ui.text_level.setText(timer + "     Level: " + dude.level);
+        timer = time_limit;
+        game.ui.text_timer.setText(timer + " SECONDS REMAIN");
         dude.hp_current = dude.hp_max;
         game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
         game.ui.health_display.setText("Health: " + dude.hp_current);
