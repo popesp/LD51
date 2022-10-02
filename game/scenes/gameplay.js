@@ -135,6 +135,7 @@ export default new Phaser.Class({
 
         second_count = this.time.addEvent({ delay: 1000, callback: addSecond, callbackScope: this, loop: true });
 
+
         startLoop(this);
 	},
     update: function()
@@ -244,7 +245,7 @@ function addSecond()
 {
     if(animation_playing === false)
     {
-        if(timer === 4)
+        if(timer === 11)
         {
             restartTimeLoop(this, false);     
         }
