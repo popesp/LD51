@@ -16,6 +16,12 @@ const LIGHT_Y = 30;
 const LIGHT_COLOR = 0x604040;
 const LIGHT_INTENSITY = 0.8;
 const LIGHT_DISTANCE = 80;
+const LIGHT_POSITIONS = [
+	[-LIGHT_SPACING, LIGHT_Y, LIGHT_SPACING],
+	[LIGHT_SPACING, LIGHT_Y, LIGHT_SPACING],
+	[-LIGHT_SPACING, LIGHT_Y, -LIGHT_SPACING],
+	[LIGHT_SPACING, LIGHT_Y, -LIGHT_SPACING]
+];
 
 const PLATFORM_RADIUS = 40;
 const PLATFORM_HEIGHT = 1000000;
@@ -45,38 +51,31 @@ export default class SurvivalScene
 		this.camera = new THREE.PerspectiveCamera(FOV, WIDTH_CANVAS/HEIGHT_CANVAS, DEPTH_NEAR, DEPTH_FAR);
 
 		/** @type {Player} */
-		this.player = new Player(this, this.camera, PLATFORM_RADIUS, X_SPAWN, Z_SPAWN);
+		this.player = new Player(this, X_SPAWN, Z_SPAWN);
+
+		/** @type {number} */
+		this.platform_radius = PLATFORM_RADIUS;
 
 		/** @type {THREE.Mesh} */
 		const platform = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, PLATFORM_HEIGHT, PLATFORM_TESSELATION), new THREE.MeshStandardMaterial());
 		platform.position.y = -PLATFORM_HEIGHT/2;
 		platform.receiveShadow = true;
-		three.add(platform);
 
 		/** @type {THREE.InstancedMesh} */
 		this.bulletMesh = bulletMesh(MAX_BULLETS);
-		three.add(this.bulletMesh);
 
 		/** @type {Bullet[]} */
 		this.bullets = new Array(MAX_BULLETS);
 
-		const lights = [
-			new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY, LIGHT_DISTANCE),
-			new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY, LIGHT_DISTANCE),
-			new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY, LIGHT_DISTANCE),
-			new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY, LIGHT_DISTANCE)
-		];
-
-		lights[0].position.set(-LIGHT_SPACING, LIGHT_Y, LIGHT_SPACING);
-		lights[1].position.set(LIGHT_SPACING, LIGHT_Y, LIGHT_SPACING);
-		lights[2].position.set(-LIGHT_SPACING, LIGHT_Y, -LIGHT_SPACING);
-		lights[3].position.set(LIGHT_SPACING, LIGHT_Y, -LIGHT_SPACING);
-
-		for(const light of lights)
+		const lights = LIGHT_POSITIONS.map(position =>
 		{
+			const light = new THREE.PointLight(LIGHT_COLOR, LIGHT_INTENSITY, LIGHT_DISTANCE);
+			light.position.set(...position);
 			light.castShadow = true;
-			three.add(light);
-		}
+			return light;
+		});
+
+		three.add(platform, this.bulletMesh, ...lights);
 	}
 
 	/**
@@ -89,7 +88,7 @@ export default class SurvivalScene
 		for(let index_bullet = 0; index_bullet < this.bullets.length; ++index_bullet)
 			if(!this.bullets[index_bullet]?.alive)
 			{
-				this.bullets[index_bullet] = new Bullet(position, direction);
+				this.bullets[index_bullet] = new Bullet(this, position, direction);
 				break;
 			}
 	}
@@ -106,10 +105,11 @@ export default class SurvivalScene
 		dummy.rotation.order = 'YXZ';
 
 		this.bulletMesh.count = 0;
-		for(const bullet of this.bullets)
+		const bullets = this.bullets.filter(bullet => Boolean(bullet));
+		for(const bullet of bullets)
 		{
-			bullet?.update(dt);
-			if(bullet?.alive)
+			bullet.update(dt);
+			if(bullet.alive)
 			{
 				const xz = Math.sqrt(bullet.speed.x**2 + bullet.speed.z**2);
 

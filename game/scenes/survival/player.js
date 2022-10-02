@@ -24,18 +24,13 @@ export default class Player
 	/**
 	 * Create a new player.
 	 * @param {SurvivalScene} scene The scene containing the player
-	 * @param {THREE.PerspectiveCamera} camera The camera to attach to the player
-	 * @param {number} platform_radius The radius of the platform
 	 * @param {number} [x_spawn = 0] Spawn x coordinate
 	 * @param {number} [z_spawn = 0] Spawn z coordinate
 	 */
-	constructor(scene, camera, platform_radius, x_spawn = 0, z_spawn = 0)
+	constructor(scene, x_spawn = 0, z_spawn = 0)
 	{
 		/** @type {SurvivalScene} */
 		this.scene = scene;
-
-		/** @type {THREE.PerspectiveCamera} */
-		this.camera = camera;
 
 		/** @type {THREE.Vector3} */
 		this.position = new THREE.Vector3(x_spawn, 0, z_spawn);
@@ -46,15 +41,12 @@ export default class Player
 		/** @type {THREE.Euler} */
 		this.angles = new THREE.Euler();
 
-		/** @type {number} */
-		this.platform_radius = platform_radius;
-
 		/** @type {InputManager} */
 		this.input = new InputManager();
 
-		camera.position.x = x_spawn;
-		camera.position.y = PLAYER_HEIGHT;
-		camera.position.z = z_spawn;
+		// scene.camera.position.x = x_spawn;
+		// scene.camera.position.y = PLAYER_HEIGHT;
+		// scene.camera.position.z = z_spawn;
 
 		/** @type {boolean} */
 		this.mouselock = false;
@@ -63,8 +55,8 @@ export default class Player
 		{
 			if(this.mouselock)
 			{
-				this.camera.getWorldDirection(direction);
-				temp.copy(this.camera.position);
+				scene.camera.getWorldDirection(direction);
+				temp.copy(scene.camera.position);
 				temp.y += Y_FIREOFFSET;
 
 				scene.spawnBullet(temp, direction);
@@ -93,7 +85,7 @@ export default class Player
 			pitch.setFromAxisAngle(AXIS_X, this.angles.x);
 			yaw.setFromAxisAngle(AXIS_Y, this.angles.y);
 
-			this.camera.quaternion.multiplyQuaternions(yaw, pitch).normalize();
+			scene.camera.quaternion.multiplyQuaternions(yaw, pitch).normalize();
 		});
 	}
 
@@ -119,15 +111,15 @@ export default class Player
 
 		const {x, y, z} = this.position;
 
-		if(y < 0 && (x*x + z*z < this.platform_radius**2))
+		if(y < 0 && (x*x + z*z < this.scene.platform_radius**2))
 		{
 			this.position.y = 0;
 			this.speed.y = 0;
 		}
 
-		this.camera.position.x = this.position.x;
-		this.camera.position.y = this.position.y + PLAYER_HEIGHT;
-		this.camera.position.z = this.position.z;
+		this.scene.camera.position.x = this.position.x;
+		this.scene.camera.position.y = this.position.y + PLAYER_HEIGHT;
+		this.scene.camera.position.z = this.position.z;
 	}
 
 	/**

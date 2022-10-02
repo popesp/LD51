@@ -67,11 +67,15 @@ export class Bullet
 {
 	/**
 	 * Create a bullet.
+	 * @param {SurvivalScene} scene The scene containing the bullet
 	 * @param {THREE.Vector3} position Starting position for the bullet
 	 * @param {THREE.Vector3} direction Starting direction for the bullet
 	 */
-	constructor(position, direction)
+	constructor(scene, position, direction)
 	{
+		/** @type {SurvivalScene} */
+		this.scene = scene;
+
 		/** @type {THREE.Vector3} */
 		this.position = new THREE.Vector3().copy(position);
 
@@ -102,5 +106,9 @@ export class Bullet
 		this.speed.y -= dt*BULLET_GRAVITY;
 
 		this.position.addScaledVector(this.speed, dt);
+
+		const {x, y, z} = this.position;
+		if(y < 0 && (x*x + z*z < this.scene.platform_radius**2))
+			this.alive = false;
 	}
 }
