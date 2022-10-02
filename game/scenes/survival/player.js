@@ -6,9 +6,9 @@ const MOUSESPEED = 0.002;
 const AXIS_X = new THREE.Vector3(1, 0, 0);
 const AXIS_Y = new THREE.Vector3(0, 1, 0);
 
-const PLAYER_HEIGHT = 2;
-const PLAYER_SPEED = 3;
-const PLAYER_ACCTIME = 0.08;
+const HEIGHT = 2;
+const SPEED = 3;
+const ACCTIME = 0.08;
 // const PLAYER_JUMP = 3;
 const DECEL = -70;
 const GRAVITY = 0.01;
@@ -45,7 +45,7 @@ export default class Player
 		this.input = new InputManager();
 
 		// scene.camera.position.x = x_spawn;
-		// scene.camera.position.y = PLAYER_HEIGHT;
+		// scene.camera.position.y = HEIGHT;
 		// scene.camera.position.z = z_spawn;
 
 		/** @type {boolean} */
@@ -99,9 +99,9 @@ export default class Player
 		const right = (this.input.getKey('KeyD') ? 1 : 0) - (this.input.getKey('KeyA') ? 1 : 0);
 		direction.set(right, 0.0, forward).normalize();
 
-		this.speed.x += dt*(this.speed.x*DECEL + direction.x*PLAYER_SPEED/PLAYER_ACCTIME);
-		this.speed.z += dt*(this.speed.z*DECEL + direction.z*PLAYER_SPEED/PLAYER_ACCTIME);
-		this.speed.clampLength(0, PLAYER_SPEED);
+		this.speed.x += dt*(this.speed.x*DECEL + direction.x*SPEED/ACCTIME);
+		this.speed.z += dt*(this.speed.z*DECEL + direction.z*SPEED/ACCTIME);
+		this.speed.clampLength(0, SPEED);
 
 		this.speed.y -= dt*GRAVITY;
 
@@ -118,7 +118,7 @@ export default class Player
 		}
 
 		this.scene.camera.position.x = this.position.x;
-		this.scene.camera.position.y = this.position.y + PLAYER_HEIGHT;
+		this.scene.camera.position.y = this.position.y + HEIGHT;
 		this.scene.camera.position.z = this.position.z;
 	}
 

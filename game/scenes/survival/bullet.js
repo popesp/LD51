@@ -1,49 +1,49 @@
 import * as THREE from 'three';
 
 
-const BULLET_WIDTH = 0.2;
-const BULLET_LENGTH_TIP = 0.6;
-const BULLET_LENGTH_BACK = 0.2;
-const BULLET_COLOR = 0xa06030;
+const WIDTH = 0.2;
+const LENGTH_TIP = 0.6;
+const LENGTH_BACK = 0.2;
+const COLOR = 0xa06030;
 const NUM_ATTRIBUTES_PER_POSITION = 3;
 
-const BULLET_SPIN = 1;
-const BULLET_GRAVITY = 1;
-const BULLET_SPEED = 50;
-const BULLET_LIFETIME = 2;
+const SPIN = 1;
+const GRAVITY = 1;
+const SPEED = 50;
+const LIFETIME = 2;
 
 const VERTS = new Float32Array([
-	0, 0, BULLET_LENGTH_TIP,
-	BULLET_WIDTH, BULLET_WIDTH, 0,
-	-BULLET_WIDTH, BULLET_WIDTH, 0,
+	0, 0, LENGTH_TIP,
+	WIDTH, WIDTH, 0,
+	-WIDTH, WIDTH, 0,
 
-	0, 0, BULLET_LENGTH_TIP,
-	BULLET_WIDTH, -BULLET_WIDTH, 0,
-	BULLET_WIDTH, BULLET_WIDTH, 0,
+	0, 0, LENGTH_TIP,
+	WIDTH, -WIDTH, 0,
+	WIDTH, WIDTH, 0,
 
-	0, 0, BULLET_LENGTH_TIP,
-	-BULLET_WIDTH, -BULLET_WIDTH, 0,
-	BULLET_WIDTH, -BULLET_WIDTH, 0,
+	0, 0, LENGTH_TIP,
+	-WIDTH, -WIDTH, 0,
+	WIDTH, -WIDTH, 0,
 
-	0, 0, BULLET_LENGTH_TIP,
-	-BULLET_WIDTH, BULLET_WIDTH, 0,
-	-BULLET_WIDTH, -BULLET_WIDTH, 0,
+	0, 0, LENGTH_TIP,
+	-WIDTH, WIDTH, 0,
+	-WIDTH, -WIDTH, 0,
 
-	0, 0, -BULLET_LENGTH_BACK,
-	-BULLET_WIDTH, BULLET_WIDTH, 0,
-	BULLET_WIDTH, BULLET_WIDTH, 0,
+	0, 0, -LENGTH_BACK,
+	-WIDTH, WIDTH, 0,
+	WIDTH, WIDTH, 0,
 
-	0, 0, -BULLET_LENGTH_BACK,
-	-BULLET_WIDTH, -BULLET_WIDTH, 0,
-	-BULLET_WIDTH, BULLET_WIDTH, 0,
+	0, 0, -LENGTH_BACK,
+	-WIDTH, -WIDTH, 0,
+	-WIDTH, WIDTH, 0,
 
-	0, 0, -BULLET_LENGTH_BACK,
-	BULLET_WIDTH, -BULLET_WIDTH, 0,
-	-BULLET_WIDTH, -BULLET_WIDTH, 0,
+	0, 0, -LENGTH_BACK,
+	WIDTH, -WIDTH, 0,
+	-WIDTH, -WIDTH, 0,
 
-	0, 0, -BULLET_LENGTH_BACK,
-	BULLET_WIDTH, BULLET_WIDTH, 0,
-	BULLET_WIDTH, -BULLET_WIDTH, 0
+	0, 0, -LENGTH_BACK,
+	WIDTH, WIDTH, 0,
+	WIDTH, -WIDTH, 0
 ]);
 
 /**
@@ -56,7 +56,7 @@ export function bulletMesh(max)
 	const geometry = new THREE.BufferGeometry();
 	geometry.setAttribute('position', new THREE.BufferAttribute(VERTS, NUM_ATTRIBUTES_PER_POSITION));
 
-	const mesh = new THREE.InstancedMesh(geometry, new THREE.MeshBasicMaterial({color: BULLET_COLOR}), max);
+	const mesh = new THREE.InstancedMesh(geometry, new THREE.MeshBasicMaterial({color: COLOR}), max);
 	mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 	mesh.castShadow = true;
 
@@ -80,7 +80,7 @@ export class Bullet
 		this.position = new THREE.Vector3().copy(position);
 
 		/** @type {THREE.Vector3} */
-		this.speed = new THREE.Vector3().copy(direction).normalize().multiplyScalar(BULLET_SPEED);
+		this.speed = new THREE.Vector3().copy(direction).normalize().multiplyScalar(SPEED);
 
 		/** @type {number} */
 		this.spin = Math.random()*Math.PI*2;
@@ -99,11 +99,11 @@ export class Bullet
 	update(dt)
 	{
 		this.age += dt;
-		if(this.age > BULLET_LIFETIME)
+		if(this.age > LIFETIME)
 			this.alive = false;
 
-		this.spin = (this.spin + dt*BULLET_SPIN)%(2*Math.PI);
-		this.speed.y -= dt*BULLET_GRAVITY;
+		this.spin = (this.spin + dt*SPIN)%(2*Math.PI);
+		this.speed.y -= dt*GRAVITY;
 
 		this.position.addScaledVector(this.speed, dt);
 

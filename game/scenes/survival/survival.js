@@ -1,5 +1,7 @@
+import {OBJLoader} from 'objloader';
 import * as THREE from 'three';
 import {bulletMesh, Bullet} from './bullet.js';
+import {enemyMesh, Enemy} from './enemy.js';
 import Player from './player.js';
 import {WIDTH_CANVAS, HEIGHT_CANVAS} from '../../globals.js';
 
@@ -13,8 +15,8 @@ const Z_SPAWN = 25;
 
 const LIGHT_SPACING = 40;
 const LIGHT_Y = 30;
-const LIGHT_COLOR = 0x604040;
-const LIGHT_INTENSITY = 0.8;
+const LIGHT_COLOR = 0xc0c0c0;
+const LIGHT_INTENSITY = 2;
 const LIGHT_DISTANCE = 80;
 const LIGHT_POSITIONS = [
 	[-LIGHT_SPACING, LIGHT_Y, LIGHT_SPACING],
@@ -26,8 +28,15 @@ const LIGHT_POSITIONS = [
 const PLATFORM_RADIUS = 40;
 const PLATFORM_HEIGHT = 1000000;
 const PLATFORM_TESSELATION = 128;
+const PLATFORM_COLOR = 0x604040;
+
+const ENEMY_SPAWN_HEIGHT = 5;
+const ENEMY_POSITIONS = [
+	[0, ENEMY_SPAWN_HEIGHT, 0]
+];
 
 const MAX_BULLETS = 100;
+const MAX_ENEMIES = 10;
 
 
 export default class SurvivalScene
@@ -57,9 +66,22 @@ export default class SurvivalScene
 		this.platform_radius = PLATFORM_RADIUS;
 
 		/** @type {THREE.Mesh} */
-		const platform = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, PLATFORM_HEIGHT, PLATFORM_TESSELATION), new THREE.MeshStandardMaterial());
+		const platform = new THREE.Mesh(new THREE.CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, PLATFORM_HEIGHT, PLATFORM_TESSELATION), new THREE.MeshStandardMaterial({color: PLATFORM_COLOR}));
 		platform.position.y = -PLATFORM_HEIGHT/2;
 		platform.receiveShadow = true;
+
+		const manager = new THREE.LoadingManager();
+		const loader = new OBJLoader(manager);
+		loader.load('/assets/meshes/magnimite.obj', obj =>
+		{
+			this.enemyMesh = enemyMesh(obj.children[0].geometry, MAX_ENEMIES);
+			three.add(this.enemyMesh);
+
+			this.enemies.push(...ENEMY_POSITIONS.map(position => new Enemy(this, new THREE.Vector3(...position))));
+		});
+
+		/** @type {Enemy[]} */
+		this.enemies = [];
 
 		/** @type {THREE.InstancedMesh} */
 		this.bulletMesh = bulletMesh(MAX_BULLETS);
@@ -104,13 +126,31 @@ export default class SurvivalScene
 		const dummy = new THREE.Object3D();
 		dummy.rotation.order = 'YXZ';
 
+		if(this.enemyMesh)
+		{
+			this.enemyMesh.count = 0;
+			const enemies = this.enemies.filter(enemy => Boolean(enemy));
+			for(const enemy of enemies)
+				if(enemy.alive)
+				{
+					enemy.update(dt);
+
+					dummy.position.copy(enemy.position);
+					dummy.rotation.set(0, 0, 0);
+
+					dummy.updateMatrix();
+					this.enemyMesh.setMatrixAt(this.enemyMesh.count++, dummy.matrix);
+				}
+
+			this.enemyMesh.instanceMatrix.needsUpdate = true;
+		}
+
 		this.bulletMesh.count = 0;
 		const bullets = this.bullets.filter(bullet => Boolean(bullet));
 		for(const bullet of bullets)
-		{
-			bullet.update(dt);
 			if(bullet.alive)
 			{
+				bullet.update(dt);
 				const xz = Math.sqrt(bullet.speed.x**2 + bullet.speed.z**2);
 
 				dummy.position.copy(bullet.position);
@@ -121,7 +161,6 @@ export default class SurvivalScene
 				dummy.updateMatrix();
 				this.bulletMesh.setMatrixAt(this.bulletMesh.count++, dummy.matrix);
 			}
-		}
 
 		this.bulletMesh.instanceMatrix.needsUpdate = true;
 

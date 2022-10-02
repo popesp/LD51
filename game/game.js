@@ -4,6 +4,7 @@ import {WIDTH_CANVAS, HEIGHT_CANVAS} from './globals.js';
 
 const SECONDS_PER_MS = 0.001;
 const DT_MIN = 0.033333333333;
+const PIXELSIZE = 8;
 
 
 export default class Game
@@ -15,7 +16,8 @@ export default class Game
 	constructor()
 	{
 		/** @type {THREE.WebGLRenderer} */
-		this.renderer = new THREE.WebGLRenderer();
+		this.renderer = new THREE.WebGLRenderer({antialias: false});
+		this.renderer.setPixelRatio(window.devicePixelRatio/PIXELSIZE);
 		document.body.appendChild(this.renderer.domElement);
 		window.addEventListener('resize', () => this.resize());
 		this.resize();
