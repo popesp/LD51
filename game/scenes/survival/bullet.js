@@ -7,6 +7,7 @@ const NUM_ATTRIBUTES_PER_POSITION = 3;
 
 const BULLET_SPIN = 0.12;
 const BULLET_GRAVITY = 0.001;
+const BULLET_SPEED = 2;
 
 const VERTS = new Float32Array([
 	0, 0, BULLET_LENGTH_TIP,
@@ -57,10 +58,10 @@ export function bulletMesh()
 
 export class Bullet
 {
-	constructor()
+	constructor(direction)
 	{
 		this.position = new THREE.Vector3(0, 2, 0);
-		this.speed = new THREE.Vector3(0.01, 0.1, 0);
+		this.speed = new THREE.Vector3().copy(direction).multiplyScalar(BULLET_SPEED);
 		this.spin = 0;
 	}
 

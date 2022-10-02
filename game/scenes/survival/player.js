@@ -39,6 +39,8 @@ export default class Player
 		{
 			if(!this.mouselock)
 				document.body.requestPointerLock();
+			
+			
 		});
 
 		document.addEventListener('pointerlockchange', () =>
