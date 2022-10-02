@@ -18,6 +18,150 @@ const dude = {
     hp_current: 5,
     level: 1
 }
+
+const crabby = {
+    name: 'crabby',
+    height: 60,
+    width: 60,
+    move_speed: 4,
+    hp: 5,
+    damage: 1
+}
+
+const bug = {
+    name: 'bug',
+    height: 60,
+    width: 60,
+    move_speed: 4,
+    hp: 5,
+    damage: 1
+}
+const level_1 = 
+{
+    spawns: [
+        {
+            info: crabby,
+            x: 1050,
+            y: 200,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: crabby,
+            x: 1000,
+            y: 250,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: crabby,
+            x: 1050,
+            y: 300,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: crabby,
+            x: 1000,
+            y: 350,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: crabby,
+            x: 1050,
+            y: 400,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: crabby,
+            x: 1000,
+            y: 450,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: crabby,
+            x: 1050,
+            y: 500,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: crabby,
+            x: 1000,
+            y: 550,
+            xvel: -2,
+            yvel: 0
+        }
+    ] 
+}
+
+const level_2 = 
+{
+    spawns: 
+    [
+        {
+            info: bug,
+            x: 1050,
+            y: 200,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: bug,
+            x: 1000,
+            y: 250,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: bug,
+            x: 1050,
+            y: 300,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: bug,
+            x: 1000,
+            y: 350,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: bug,
+            x: 1050,
+            y: 400,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: bug,
+            x: 1000,
+            y: 450,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: bug,
+            x: 1050,
+            y: 500,
+            xvel: -2,
+            yvel: 0
+        },
+        {
+            info: bug,
+            x: 1000,
+            y: 550,
+            xvel: -2,
+            yvel: 0
+        }
+    ] 
+}
+
+const levels = [level_1, level_2]
 const bullets = [];
 let baddies = [];
 let ghosts = [];
@@ -44,25 +188,30 @@ export default new Phaser.Class({
 			{frameWidth: 20, frameHeight: 16});
 
 		this.load.image('bullet', 'assets/sprites/purple_ball.png');
-		this.load.image('baddie', 'assets/sprites/baddie.png');
-        this.load.image('ghost', 'assets/sprites/bug.png');
+		this.load.image('crabby', 'assets/sprites/baddie.png');
+        this.load.image('bug', 'assets/sprites/bug.png');
 	},
 	create: function()
 	{
-        this.time.now = 0;
         this.input.setDefaultCursor('url(assets/sprites/crosshair.png), pointer');
         dude.sprite = this.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1);
 
         this.cameras.main.startFollow(dude.sprite);
         this.cameras.main.setBounds(0, 0, 2000, 2000);
         this.cameras.main.setZoom(1);
+        
+        for(let i = 0; i < levels[dude.level-1].spawns.length; i++)
+        {
+            spawn_enemy(this, levels[dude.level-1].spawns[i]);
+        }
 
         this.cursors = this.input.keyboard.addKeys("UP,LEFT,DOWN,RIGHT,W,A,S,D,R,SPACE");
         this.ui = {
             bar_bg: this.add.graphics().fillStyle(0xcc2418, 1).fillRect(0, -2, 204, 38).setPosition(14, 14),
             bar: this.add.graphics().fillStyle(0xebb134, 1).fillRect(0, 0, 200, 30).setPosition(16, 16),
             stamina_display: this.add.text(52, 18, "Health: " + dude.hp_max, {fontSize: "24px", fill: "#000"}),
-            text_level: this.add.text(1000, 18, + timer + "     Level: " + dude.level, {fontSize: "24px", fill: "#ffffff"})
+            text_level: this.add.text(1000, 18, + timer + "     Level: " + dude.level, {fontSize: "24px", fill: "#ffffff"}),
+            baddies_left: this.add.text(500, 18, "Enemies Remaining " + baddies.length, {fontSize: "24px", fill: "#ffffff"})
         };
 
         for(const key_object in this.ui)
@@ -84,14 +233,13 @@ export default new Phaser.Class({
                 mousey: this.input.mousePointer.y+this.cameras.main._scrollY,
                 time: this.time.now
             }
-
         )
 
         //10 sec timer
         const count_down = Math.trunc((this.time.now/1000)%10);
         if(count_down !== prev_count_down)
         {
-            if (count_down === 1)
+            if (count_down === 1 && this.time.now > 5000)
             {
                 restartTimeLoop(this);
             }
@@ -156,25 +304,28 @@ export default new Phaser.Class({
 
         if (this.input.activePointer.isDown)
         {
-            fire(this, this.input.mousePointer.x+this.cameras.main._scrollX, this.input.mousePointer.y+this.cameras.main._scrollY, dude.sprite.x, dude.sprite.y);
+            fire(this, this.input.mousePointer.x+this.cameras.main._scrollX, this.input.mousePointer.y+this.cameras.main._scrollY, dude.sprite.x, dude.sprite.y, true);
         }
 
         move_bullets(this);
         move_baddies(this);
         move_ghosts(this);
 
-        if (this.time.now > nextSpawn)
-        {
-            spawn_enemy(this)
-        }
+        // if (this.time.now > nextSpawn)
+        // {
+        //     spawn_enemy(this)
+        // }
     }
 });
 
-function fire(game, mousex, mousey, spritex, spritey)
+function fire(game, mousex, mousey, spritex, spritey, reload)
 {
-	if(game.time.now > nextFire)
+	if(game.time.now > nextFire || reload === false)
 	{
-		nextFire = game.time.now + fireRate;
+        if(reload === true)
+        {
+            nextFire = game.time.now + fireRate;
+        }
         
         const xvelocity = (mousex - spritex + 15);
         const yvelocity = (mousey - spritey + 15);
@@ -191,18 +342,18 @@ function fire(game, mousex, mousey, spritex, spritey)
     }
 }
 
-function spawn_enemy(game)
+function spawn_enemy(game, baddie)
 {
     nextSpawn = game.time.now + spawnRate;
-
+    console.log(baddie.info.name);
     baddies.push({   
-        sprite: game.add.sprite(dude.sprite.x + randomPlusOrMinus() * 100, dude.sprite.y + randomPlusOrMinus() * 100, 'baddie'),
-        xvel: randomPlusOrMinus(),
-        yvel: randomPlusOrMinus(),
-        width: 80,
-        height: 80,
-        damage: 1,
-        hp: 1,
+        sprite: game.add.sprite(baddie.x, baddie.y, baddie.info.name),
+        xvel: baddie.xvel,
+        yvel: baddie.yvel,
+        width: baddie.info.width,
+        height: baddie.info.height,
+        damage: baddie.info.damage,
+        hp: baddie.info.hp,
         delete: false
     })
 }
@@ -228,17 +379,52 @@ function move_bullets(game)
 				if(Math.abs(bullet.sprite.x - baddie.sprite.x) < baddie.width/2 && Math.abs(bullet.sprite.y - baddie.sprite.y) < baddie.height/2)
 				{
 					baddie.hp -= bullet.damage;
+                    bullet.delete = true;
+                    bullet.sprite.destroy();
 					if(baddie.hp <= 0)
 					{
 						baddie.delete = true;
 						baddie.sprite.destroy();
 					}
+                    else
+                    {
+                        game.tweens.addCounter({
+                            duration: 100,
+                            onUpdate: function()
+                            {
+                                baddie.sprite.setTintFill(0xFFFFFF);
+                            },
+                            onComplete: function()
+                            {
+                                baddie.sprite.clearTint();
+                            }
+                        });
+                    }
 				}
 			}
             //check for collsion on player
             if(Math.abs(bullet.sprite.x - dude.sprite.x) < dude.width/2 && Math.abs(bullet.sprite.y - dude.sprite.y) < dude.height/2)
             {
                 playerDamage(game, bullet.damage);
+            }
+            //check collsion on ghosts
+            for(const ghost of ghosts)
+            {
+                if(Math.abs(bullet.sprite.x - ghost.sprite.x) < dude.width/2 && Math.abs(bullet.sprite.y - ghost.sprite.y) < dude.height/2 && nextInvince < game.time.now)
+                {
+                    playerDamage(game, bullet.damage);
+                    game.tweens.addCounter({
+                        duration: 100,
+                        onUpdate: function()
+                        {
+                            ghost.sprite.setTintFill(0xFFFFFF);
+                        },
+                        onComplete: function()
+                        {
+                            ghost.sprite.clearTint();
+                        }
+                    });
+                }
             }
 		}
 	}
@@ -272,6 +458,11 @@ function move_baddies(game)
         if (baddies[i].delete === true)
         {
             baddies.splice(i, 1);
+            game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
+            if(baddies.length === 0)
+            {
+                levelComplete();
+            }
         }
     }
 }
@@ -280,12 +471,11 @@ function move_ghosts(game)
 {  
     for(var i = 0; i < ghosts.length; i++)
     {
-
         ghosts[i].sprite.x = ghosts[i].actions[0].x;
         ghosts[i].sprite.y = ghosts[i].actions[0].y;
         if(ghosts[i].actions[0].fire)
         {
-            fire(game, ghosts[i].actions[0].mousex, ghosts[i].actions[0].mousey, ghosts[i].actions[0].x, ghosts[i].actions[0].y);
+            fire(game, ghosts[i].actions[0].mousex, ghosts[i].actions[0].mousey, ghosts[i].actions[0].x, ghosts[i].actions[0].y, false);
         }
         if(ghosts[i].actions[0].mousex < ghosts[i].actions[0].x)
         {
@@ -302,7 +492,6 @@ function move_ghosts(game)
 
 function restartTimeLoop(game)
 {
-    dude.level ++;
     dude.hp_current = dude.hp_max;
     dude.sprite.x = WIDTH_CANVAS/2;
     dude.sprite.y = HEIGHT_CANVAS/2;
@@ -318,11 +507,15 @@ function restartTimeLoop(game)
     //remove baddies
     for (var i = 0; i < baddies.length; i++) 
     {
-        if (baddies[i].delete === true)
-        {
-            baddies.splice(i, 1);
-        }
+        baddies[i].sprite.destroy();
     }
+    baddies = [];
+    //respawn baddies
+    for(let i = 0; i < levels[dude.level-1].spawns.length; i++)
+    {
+        spawn_enemy(game, levels[dude.level-1].spawns[i]);
+    }
+    game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
 }
 
 function playerDamage(game, damage)
@@ -352,8 +545,9 @@ function playerDamage(game, damage)
     }
 }
 
-
-function randomPlusOrMinus()
+function levelComplete()
 {
-    return Math.random() < 0.5 ? -1 : 1;
-} 
+    dude.level ++;
+}
+
+
