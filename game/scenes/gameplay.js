@@ -30,7 +30,7 @@ let nextFire = 0;
 const spawnRate = 1000;
 const bulletSpeed = 12;
 const hitInvince = 1000;
-const time_limit = 4;
+const time_limit = 10;
 let timer = time_limit;
 let second_count;
 let nextInvince = 0;
@@ -136,6 +136,7 @@ export default new Phaser.Class({
             this.ui[key_object].setScrollFactor(0).setDepth(4);
 
         second_count = this.time.addEvent({ delay: 1000, callback: addSecond, callbackScope: this, loop: true });
+        second_count.paused = true;
 
 
         startLoop(this);
@@ -144,6 +145,11 @@ export default new Phaser.Class({
     {   
         if(animation_playing === false)
         {
+            if(second_count.paused === true)
+            {
+                second_count.paused = false;
+                
+            }
             // console.log(random.float(0, 5));
             // random.lcg.reset();
             const left = this.cursors.A.isDown || this.cursors.LEFT.isDown;
@@ -238,6 +244,13 @@ export default new Phaser.Class({
             move_bullets(this);
             move_baddies(this);
             move_ghosts(this);
+
+            if(stored_actions.length === 620)
+            {
+                timer--;
+                this.ui.text_timer.setText(timer + " SECONDS REMAIN");
+                restartTimeLoop(this, false);  
+            }
         }
 
     }
@@ -247,15 +260,16 @@ function addSecond()
 {
     if(animation_playing === false)
     {
-        if(timer === 0)
+        
+        // if(timer === 0)
+        // {
+        //     // this.ui.text_timer.setText(timer + " SECONDS REMAIN");
+        //     // restartTimeLoop(this, false);     
+        // }
+        if(timer > 1)
         {
+            timer--;
             this.ui.text_timer.setText(timer + " SECONDS REMAIN");
-            restartTimeLoop(this, false);     
-        }
-        else
-        {
-            this.ui.text_timer.setText(timer + " SECONDS REMAIN");
-            timer --;
         }
     }
 }
@@ -442,7 +456,6 @@ function move_ghosts(game)
 {  
     for(var i = 0; i < ghosts.length; i++)
     {
-        console.log(ghosts[i].actions.length);
         ghosts[i].sprite.x = ghosts[i].actions[0].x;
         ghosts[i].sprite.y = ghosts[i].actions[0].y;
         if(ghosts[i].actions[0].fire)
@@ -472,20 +485,50 @@ function playerDamage(game, damage)
         game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
         if(dude.hp_current <= 0)
         {
-            console.log("GAMEOVER");
+            dude.hp_current = 0;
+            animation_playing = true;
+            second_count.paused  = true;
+            const game_over_text = game.add.text(dude.sprite.x, dude.sprite.y, "DEATH", {fontFamily: FONT_TITLE, color: "white", fontSize: "80px"}).setOrigin(0.5).setDepth(2);;
+            game.emitter_blood.explode(600, dude.sprite.x, dude.sprite.y);
+            game.tweens.addCounter({
+                from: 0,
+                to: 1,
+                duration: 1500,
+                onUpdate: function(tween)
+                {
+                    game.cameras.main.setZoom(1 + tween.getValue()*2);
+                }
+            });
+            setTimeout(function(){
+                game_over_text.setText("");
+                game.cameras.main.setZoom(1)
+                animation_playing = false;
+                second_count.paused  = false;
+                for(const ghost of ghosts)
+                {
+                    ghost.sprite.destroy();
+                }
+                ghosts = [];
+                stored_actions = [];
+                restartTimeLoop(game, true)
+            },2000);
+
         }
-        nextInvince = hitInvince + game.time.now;
-        game.tweens.addCounter({
-            duration: 100,
-            onUpdate: function()
-            {
-                dude.sprite.setTintFill(0xFFFFFF);
-            },
-            onComplete: function()
-            {
-                dude.sprite.clearTint();
-            }
-        });
+        else 
+        {
+            nextInvince = hitInvince + game.time.now;
+            game.tweens.addCounter({
+                duration: 100,
+                onUpdate: function()
+                {
+                    dude.sprite.setTintFill(0xFFFFFF);
+                },
+                onComplete: function()
+                {
+                    dude.sprite.clearTint();
+                }
+            });
+        }
     }
 }
 
@@ -542,6 +585,8 @@ function restartTimeLoop(game, nextlevel)
             ghosts[ghosts.length-1].sprite.tint = 0xa5adb5;
             animation_playing = false;
             second_count.paused  = false;
+            game.time.addEvent(second_count);
+            second_count.paused  = false;
             restartTimeLoop(game, true);
         },1000);
     }
@@ -590,9 +635,8 @@ function levelComplete(game)
     game.emitter_time_effect.explode(300, dude.sprite.x, dude.sprite.y);
     setTimeout(function(){
         level_done_text.setText("");
-        second_count.paused  = false;
         animation_playing = false;
-        
+        second_count.paused  = false;
         dude.level ++;
         for(const ghost of ghosts)
         {
