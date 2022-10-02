@@ -12,16 +12,20 @@ const MAX_SPEED = 8;
 const dude = {
     xvel: 0,
     yvel: 0,
+    width: 80,
+    height: 80,
     hp_max: 5,
     hp_current: 5,
     level: 1
 }
 const bullets = [];
-const baddies = [];
+let baddies = [];
+let ghosts = [];
+let stored_actions = [];
 const fireRate = 200;
 let nextFire = 0;
 let nextSpawn = 1000;
-let prev_count_down = 1;
+let prev_count_down = 0;
 const spawnRate = 1000;
 const bulletSpeed = 8;
 const hitInvince = 1000;
@@ -41,9 +45,11 @@ export default new Phaser.Class({
 
 		this.load.image('bullet', 'assets/sprites/purple_ball.png');
 		this.load.image('baddie', 'assets/sprites/baddie.png');
+        this.load.image('ghost', 'assets/sprites/bug.png');
 	},
 	create: function()
 	{
+        this.time.now = 0;
         this.input.setDefaultCursor('url(assets/sprites/crosshair.png), pointer');
         dude.sprite = this.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1);
 
@@ -68,14 +74,26 @@ export default new Phaser.Class({
         const right = this.cursors.D.isDown || this.cursors.RIGHT.isDown;
         const up = this.cursors.W.isDown || this.cursors.UP.isDown;
         const down = this.cursors.S.isDown || this.cursors.DOWN.isDown;
+
+        stored_actions.push(
+            {
+                x: dude.sprite.x,
+                y: dude.sprite.y,
+                fire: this.input.activePointer.isDown && this.time.now > nextFire,
+                mousex: this.input.mousePointer.x+this.cameras.main._scrollX,
+                mousey: this.input.mousePointer.y+this.cameras.main._scrollY,
+                time: this.time.now
+            }
+
+        )
+
         //10 sec timer
         const count_down = Math.trunc((this.time.now/1000)%10);
         if(count_down !== prev_count_down)
         {
             if (count_down === 1)
             {
-                //do level up here
-                dude.level ++;
+                restartTimeLoop(this);
             }
             this.ui.text_level.setText(count_down + "     Level: " + dude.level);
             if (count_down === 0)
@@ -127,7 +145,7 @@ export default new Phaser.Class({
             dude.sprite.y += dude.yvel;
         }
 
-        if(this.input.mousePointer.x < dude.sprite.x)
+        if(this.input.mousePointer.x + this.cameras.main._scrollX < dude.sprite.x)
         {
             dude.sprite.flipX = true;
         }
@@ -138,15 +156,12 @@ export default new Phaser.Class({
 
         if (this.input.activePointer.isDown)
         {
-
-            fire(this, this.input.mousePointer.x+this.cameras.main._scrollX, this.input.mousePointer.y+this.cameras.main._scrollY);
+            fire(this, this.input.mousePointer.x+this.cameras.main._scrollX, this.input.mousePointer.y+this.cameras.main._scrollY, dude.sprite.x, dude.sprite.y);
         }
 
-        //bullets
-        move_bullets();
-
-        //baddies
+        move_bullets(this);
         move_baddies(this);
+        move_ghosts(this);
 
         if (this.time.now > nextSpawn)
         {
@@ -155,17 +170,18 @@ export default new Phaser.Class({
     }
 });
 
-function fire(game, mousex, mousey)
+function fire(game, mousex, mousey, spritex, spritey)
 {
 	if(game.time.now > nextFire)
 	{
 		nextFire = game.time.now + fireRate;
         
-        const xvelocity = (mousex - dude.sprite.x);
-        const yvelocity = (mousey - dude.sprite.y);
+        const xvelocity = (mousex - spritex);
+        const yvelocity = (mousey - spritey);
+        // const angle = Math.atan2(yvelocity, xvelocity);
         const vector_length = Math.sqrt(xvelocity**2 + yvelocity**2);
         bullets.push({   
-            sprite: game.add.sprite(dude.sprite.x+15, dude.sprite.y+15, 'bullet'),
+            sprite: game.add.sprite(spritex, spritey, 'bullet'),
             xvel: (xvelocity/vector_length) * bulletSpeed,
             yvel: (yvelocity/vector_length) * bulletSpeed,
             damage: 1,
@@ -191,7 +207,7 @@ function spawn_enemy(game)
     })
 }
 
-function move_bullets()
+function move_bullets(game)
 {
 	for(const bullet of bullets)
 	{
@@ -206,7 +222,7 @@ function move_bullets()
 			bullet.sprite.y += bullet.yvel;
 			bullet.life--;
 
-			//check for collsion
+			//check for collsion on baddies
 			for(const baddie of baddies)
 			{
 				if(Math.abs(bullet.sprite.x - baddie.sprite.x) < baddie.width/2 && Math.abs(bullet.sprite.y - baddie.sprite.y) < baddie.height/2)
@@ -219,6 +235,11 @@ function move_bullets()
 					}
 				}
 			}
+            //check for collsion on player
+            if(Math.abs(bullet.sprite.x - dude.sprite.x) < dude.width/2 && Math.abs(bullet.sprite.y - dude.sprite.y) < dude.height/2)
+            {
+                playerDamage(game, bullet.damage);
+            }
 		}
 	}
 	//remove deleted bullets from array
@@ -241,29 +262,7 @@ function move_baddies(game)
         //check if player hit
         if (Math.abs(dude.sprite.x - baddie.sprite.x) < baddie.width/2 && Math.abs(dude.sprite.y - baddie.sprite.y) < baddie.height/2)
         {
-            //if not invincable from being hit 
-            if (nextInvince < game.time.now)
-            {
-                dude.hp_current -= baddie.damage;
-                game.ui.stamina_display.setText("Health: " + dude.hp_current);
-                game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
-                if(dude.hp_current <= 0)
-                {
-                    console.log("GAMEOVER");
-                }
-                nextInvince = hitInvince + game.time.now;
-                game.tweens.addCounter({
-					duration: 100,
-					onUpdate: function()
-					{
-						dude.sprite.setTintFill(0xFFFFFF);
-					},
-					onComplete: function()
-					{
-						dude.sprite.clearTint();
-					}
-				});
-            }
+            playerDamage(game, baddie.damage);
         }
     }
 
@@ -276,6 +275,82 @@ function move_baddies(game)
         }
     }
 }
+
+function move_ghosts(game)
+{  
+    for(var i = 0; i < ghosts.length; i++)
+    {
+
+        ghosts[i].sprite.x = ghosts[i].actions[0].x;
+        ghosts[i].sprite.y = ghosts[i].actions[0].y;
+        if(ghosts[i].actions[0].fire)
+        {
+            fire(game, ghosts[i].actions[0].mousex, ghosts[i].actions[0].mousey, ghosts[i].actions[0].x, ghosts[i].actions[0].y);
+        }
+        if(ghosts[i].actions[0].mousex < ghosts[i].actions[0].x)
+        {
+            ghosts[i].sprite.flipX = true;
+        }
+        else
+        {
+            ghosts[i].sprite.flipX = false;
+        }
+
+        ghosts[i].actions.push(ghosts[i].actions.splice(0, 1));
+    }
+}
+
+function restartTimeLoop(game)
+{
+    dude.level ++;
+    dude.hp_current = dude.hp_max;
+    dude.sprite.x = WIDTH_CANVAS/2;
+    dude.sprite.y = HEIGHT_CANVAS/2;
+
+    //spawn ghost
+    ghosts.push({
+        sprite: game.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1),
+        actions: stored_actions
+    })
+    stored_actions = [];
+    
+    //remove baddies
+    for (var i = 0; i < baddies.length; i++) 
+    {
+        if (baddies[i].delete === true)
+        {
+            baddies.splice(i, 1);
+        }
+    }
+}
+
+function playerDamage(game, damage)
+{
+    //if not invincable from being hit 
+    if (nextInvince < game.time.now)
+    {
+        dude.hp_current -= damage;
+        game.ui.stamina_display.setText("Health: " + dude.hp_current);
+        game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
+        if(dude.hp_current <= 0)
+        {
+            console.log("GAMEOVER");
+        }
+        nextInvince = hitInvince + game.time.now;
+        game.tweens.addCounter({
+            duration: 100,
+            onUpdate: function()
+            {
+                dude.sprite.setTintFill(0xFFFFFF);
+            },
+            onComplete: function()
+            {
+                dude.sprite.clearTint();
+            }
+        });
+    }
+}
+
 
 function randomPlusOrMinus()
 {
