@@ -1,21 +1,21 @@
 import {WIDTH_CANVAS, PADDING_CANVAS, HEIGHT_CANVAS, FONT_DEFAULT, FONT_TITLE} from '../globals.js';
 import LEVELS from '../data/LEVELS.json' assert { type: "json" };
 import BADDIES from '../data/baddies.json' assert { type: "json" };
+import {PseudoRandom} from '../random.js';
 
-const WIDTH_START_BUTTON = 200;
-const HEIGHT_START_BUTTON = 50;
-const Y_START_BUTTON = -70;
 
+const MAP_WIDTH = 1500;
+const MAP_HEIGHT = 1000;
 // PHYSICS
-const RUN_ACCEL = 0.4;
+const RUN_ACCEL = 0.2;
 const RUN_DECEL = 1;
-const MAX_SPEED = 8;
+const MAX_SPEED = 6;
 
 const dude = {
     xvel: 0,
     yvel: 0,
     width: 80,
-    height: 80,
+    height: 64,
     hp_max: 5,
     hp_current: 5,
     level: 1
@@ -27,13 +27,14 @@ let ghosts = [];
 let stored_actions = [];
 const fireRate = 200;
 let nextFire = 0;
-let nextSpawn = 1000;
 const spawnRate = 1000;
 const bulletSpeed = 8;
 const hitInvince = 1000;
 let timer = 1;
 let second_count;
 let nextInvince = 0;
+
+const random = new PseudoRandom(69);
 export default new Phaser.Class({
 	Extends: Phaser.Scene,
 	initialize: function()
@@ -53,10 +54,10 @@ export default new Phaser.Class({
 	create: function()
 	{
         this.input.setDefaultCursor('url(assets/sprites/crosshair.png), pointer');
-        dude.sprite = this.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1);
+        dude.sprite = this.add.sprite(MAP_WIDTH/2, MAP_HEIGHT/2, 'dude').setDisplaySize(dude.width, dude.height).setDepth(1);
 
         this.cameras.main.startFollow(dude.sprite);
-        this.cameras.main.setBounds(0, 0, 2000, 2000);
+        this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
         this.cameras.main.setZoom(1);
         
         for(let i = 0; i < LEVELS[dude.level-1].spawns.length; i++)
@@ -68,7 +69,7 @@ export default new Phaser.Class({
         this.ui = {
             bar_bg: this.add.graphics().fillStyle(0xcc2418, 1).fillRect(0, -2, 204, 38).setPosition(14, 14),
             bar: this.add.graphics().fillStyle(0xebb134, 1).fillRect(0, 0, 200, 30).setPosition(16, 16),
-            stamina_display: this.add.text(52, 18, "Health: " + dude.hp_max, {fontSize: "24px", fill: "#000"}),
+            health_display: this.add.text(52, 18, "Health: " + dude.hp_max, {fontSize: "24px", fill: "#000"}),
             text_level: this.add.text(1000, 18, + timer + "     Level: " + dude.level, {fontSize: "24px", fill: "#ffffff"}),
             baddies_left: this.add.text(500, 18, "Enemies Remaining " + baddies.length, {fontSize: "24px", fill: "#ffffff"})
         };
@@ -80,6 +81,8 @@ export default new Phaser.Class({
 	},
     update: function()
     {
+        console.log(random.float(0, 5));
+        random.lcg.reset();
         const left = this.cursors.A.isDown || this.cursors.LEFT.isDown;
         const right = this.cursors.D.isDown || this.cursors.RIGHT.isDown;
         const up = this.cursors.W.isDown || this.cursors.UP.isDown;
@@ -137,6 +140,24 @@ export default new Phaser.Class({
             dude.sprite.y += dude.yvel;
         }
 
+        if(dude.sprite.x - dude.width/2 < 0)
+        {
+            dude.sprite.x = dude.width/2;
+        }
+        if(dude.sprite.x + dude.width/2 > MAP_WIDTH)
+        {
+            dude.sprite.x = MAP_WIDTH - dude.width/2;
+        }
+
+        if(dude.sprite.y - dude.height/2 - 50 < 0)
+        {
+            dude.sprite.y = dude.height/2 + 50;
+        }
+        if(dude.sprite.y + dude.height/2 > MAP_HEIGHT)
+        {
+            dude.sprite.y = MAP_HEIGHT - dude.height/2;
+        }
+
         if(this.input.mousePointer.x + this.cameras.main._scrollX < dude.sprite.x)
         {
             dude.sprite.flipX = true;
@@ -155,10 +176,6 @@ export default new Phaser.Class({
         move_baddies(this);
         move_ghosts(this);
 
-        // if (this.time.now > nextSpawn)
-        // {
-        //     spawn_enemy(this)
-        // }
     }
 });
 
@@ -166,13 +183,12 @@ function addSecond()
 {
     if(timer === 11)
     {
-        restartTimeLoop(this, false);  
-        this.ui.text_level.setText(timer + "     Level: " + dude.level);    
+        restartTimeLoop(this, false);     
     }
     else
     {
-        timer ++;
         this.ui.text_level.setText(timer + "     Level: " + dude.level);
+        timer ++;
     }
 }
 
@@ -203,7 +219,6 @@ function fire(game, mousex, mousey, spritex, spritey, reload)
 function spawn_enemy(game, spawn)
 {
     const baddie = BADDIES[spawn.info]
-    nextSpawn = game.time.now + spawnRate;
     baddies.push({   
         sprite: game.add.sprite(spawn.x, spawn.y, baddie.name),
         xvel: spawn.xvel,
@@ -316,13 +331,13 @@ function move_baddies(game)
         if (baddies[i].delete === true)
         {
             baddies.splice(i, 1);
-            game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
             if(baddies.length === 0)
             {
                 levelComplete(game);
             }
         }
     }
+    game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
 }
 
 function move_ghosts(game)
@@ -348,10 +363,40 @@ function move_ghosts(game)
     }
 }
 
+function playerDamage(game, damage)
+{
+    //if not invincable from being hit 
+    if (nextInvince < game.time.now)
+    {
+        dude.hp_current -= damage;
+        game.ui.health_display.setText("Health: " + dude.hp_current);
+        game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
+        if(dude.hp_current <= 0)
+        {
+            console.log("GAMEOVER");
+        }
+        nextInvince = hitInvince + game.time.now;
+        game.tweens.addCounter({
+            duration: 100,
+            onUpdate: function()
+            {
+                dude.sprite.setTintFill(0xFFFFFF);
+            },
+            onComplete: function()
+            {
+                dude.sprite.clearTint();
+            }
+        });
+    }
+}
+
 function restartTimeLoop(game, nextlevel)
 {
     timer = 1;
+    game.ui.text_level.setText(timer + "     Level: " + dude.level);
     dude.hp_current = dude.hp_max;
+    game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
+    game.ui.health_display.setText("Health: " + dude.hp_current);
     dude.sprite.x = WIDTH_CANVAS/2;
     dude.sprite.y = HEIGHT_CANVAS/2;
 
@@ -377,33 +422,6 @@ function restartTimeLoop(game, nextlevel)
         spawn_enemy(game, LEVELS[dude.level-1].spawns[i]);
     }
     game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
-}
-
-function playerDamage(game, damage)
-{
-    //if not invincable from being hit 
-    if (nextInvince < game.time.now)
-    {
-        dude.hp_current -= damage;
-        game.ui.stamina_display.setText("Health: " + dude.hp_current);
-        game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
-        if(dude.hp_current <= 0)
-        {
-            console.log("GAMEOVER");
-        }
-        nextInvince = hitInvince + game.time.now;
-        game.tweens.addCounter({
-            duration: 100,
-            onUpdate: function()
-            {
-                dude.sprite.setTintFill(0xFFFFFF);
-            },
-            onComplete: function()
-            {
-                dude.sprite.clearTint();
-            }
-        });
-    }
 }
 
 function levelComplete(game)
