@@ -1,4 +1,6 @@
 import {WIDTH_CANVAS, PADDING_CANVAS, HEIGHT_CANVAS, FONT_DEFAULT, FONT_TITLE} from '../globals.js';
+import LEVELS from '../data/LEVELS.json' assert { type: "json" };
+import BADDIES from '../data/baddies.json' assert { type: "json" };
 
 const WIDTH_START_BUTTON = 200;
 const HEIGHT_START_BUTTON = 50;
@@ -19,161 +21,18 @@ const dude = {
     level: 1
 }
 
-const crabby = {
-    name: 'crabby',
-    height: 60,
-    width: 60,
-    move_speed: 4,
-    hp: 5,
-    damage: 1
-}
-
-const bug = {
-    name: 'bug',
-    height: 60,
-    width: 60,
-    move_speed: 4,
-    hp: 5,
-    damage: 1
-}
-const level_1 = 
-{
-    spawns: [
-        {
-            info: crabby,
-            x: 1050,
-            y: 200,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: crabby,
-            x: 1000,
-            y: 250,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: crabby,
-            x: 1050,
-            y: 300,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: crabby,
-            x: 1000,
-            y: 350,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: crabby,
-            x: 1050,
-            y: 400,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: crabby,
-            x: 1000,
-            y: 450,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: crabby,
-            x: 1050,
-            y: 500,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: crabby,
-            x: 1000,
-            y: 550,
-            xvel: -2,
-            yvel: 0
-        }
-    ] 
-}
-
-const level_2 = 
-{
-    spawns: 
-    [
-        {
-            info: bug,
-            x: 1050,
-            y: 200,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: bug,
-            x: 1000,
-            y: 250,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: bug,
-            x: 1050,
-            y: 300,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: bug,
-            x: 1000,
-            y: 350,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: bug,
-            x: 1050,
-            y: 400,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: bug,
-            x: 1000,
-            y: 450,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: bug,
-            x: 1050,
-            y: 500,
-            xvel: -2,
-            yvel: 0
-        },
-        {
-            info: bug,
-            x: 1000,
-            y: 550,
-            xvel: -2,
-            yvel: 0
-        }
-    ] 
-}
-
-const levels = [level_1, level_2]
-const bullets = [];
+let bullets = [];
 let baddies = [];
 let ghosts = [];
 let stored_actions = [];
 const fireRate = 200;
 let nextFire = 0;
 let nextSpawn = 1000;
-let prev_count_down = 0;
 const spawnRate = 1000;
 const bulletSpeed = 8;
 const hitInvince = 1000;
-const timer = 10;
+let timer = 1;
+let second_count;
 let nextInvince = 0;
 export default new Phaser.Class({
 	Extends: Phaser.Scene,
@@ -200,9 +59,9 @@ export default new Phaser.Class({
         this.cameras.main.setBounds(0, 0, 2000, 2000);
         this.cameras.main.setZoom(1);
         
-        for(let i = 0; i < levels[dude.level-1].spawns.length; i++)
+        for(let i = 0; i < LEVELS[dude.level-1].spawns.length; i++)
         {
-            spawn_enemy(this, levels[dude.level-1].spawns[i]);
+            spawn_enemy(this, LEVELS[dude.level-1].spawns[i]);
         }
 
         this.cursors = this.input.keyboard.addKeys("UP,LEFT,DOWN,RIGHT,W,A,S,D,R,SPACE");
@@ -216,6 +75,8 @@ export default new Phaser.Class({
 
         for(const key_object in this.ui)
             this.ui[key_object].setScrollFactor(0).setDepth(4);
+
+        second_count = this.time.addEvent({ delay: 1000, callback: addSecond, callbackScope: this, loop: true });
 	},
     update: function()
     {
@@ -234,23 +95,6 @@ export default new Phaser.Class({
                 time: this.time.now
             }
         )
-
-        //10 sec timer
-        const count_down = Math.trunc((this.time.now/1000)%10);
-        if(count_down !== prev_count_down)
-        {
-            if (count_down === 1 && this.time.now > 5000)
-            {
-                restartTimeLoop(this);
-            }
-            this.ui.text_level.setText(count_down + "     Level: " + dude.level);
-            if (count_down === 0)
-            {
-                this.ui.text_level.setText(10 + "     Level: " + dude.level);
-            }
-        }
-        prev_count_down = count_down;
-
         if(left === right)
         {
             if(dude.xvel > 0)
@@ -318,6 +162,20 @@ export default new Phaser.Class({
     }
 });
 
+function addSecond()
+{
+    if(timer === 11)
+    {
+        restartTimeLoop(this, false);  
+        this.ui.text_level.setText(timer + "     Level: " + dude.level);    
+    }
+    else
+    {
+        timer ++;
+        this.ui.text_level.setText(timer + "     Level: " + dude.level);
+    }
+}
+
 function fire(game, mousex, mousey, spritex, spritey, reload)
 {
 	if(game.time.now > nextFire || reload === false)
@@ -342,18 +200,18 @@ function fire(game, mousex, mousey, spritex, spritey, reload)
     }
 }
 
-function spawn_enemy(game, baddie)
+function spawn_enemy(game, spawn)
 {
+    const baddie = BADDIES[spawn.info]
     nextSpawn = game.time.now + spawnRate;
-    console.log(baddie.info.name);
     baddies.push({   
-        sprite: game.add.sprite(baddie.x, baddie.y, baddie.info.name),
-        xvel: baddie.xvel,
-        yvel: baddie.yvel,
-        width: baddie.info.width,
-        height: baddie.info.height,
-        damage: baddie.info.damage,
-        hp: baddie.info.hp,
+        sprite: game.add.sprite(spawn.x, spawn.y, baddie.name),
+        xvel: spawn.xvel,
+        yvel: spawn.yvel,
+        width: baddie.width,
+        height: baddie.height,
+        damage: baddie.damage,
+        hp: baddie.hp,
         delete: false
     })
 }
@@ -461,7 +319,7 @@ function move_baddies(game)
             game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
             if(baddies.length === 0)
             {
-                levelComplete();
+                levelComplete(game);
             }
         }
     }
@@ -490,18 +348,21 @@ function move_ghosts(game)
     }
 }
 
-function restartTimeLoop(game)
+function restartTimeLoop(game, nextlevel)
 {
+    timer = 1;
     dude.hp_current = dude.hp_max;
     dude.sprite.x = WIDTH_CANVAS/2;
     dude.sprite.y = HEIGHT_CANVAS/2;
 
     //spawn ghost
-    ghosts.push({
-        sprite: game.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1),
-        actions: stored_actions.slice()
-    })
-
+    if(!nextlevel)
+    {
+        ghosts.push({
+            sprite: game.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(80, 64).setDepth(1),
+            actions: stored_actions.slice()
+        })
+    }
     stored_actions = [];
     
     //remove baddies
@@ -511,9 +372,9 @@ function restartTimeLoop(game)
     }
     baddies = [];
     //respawn baddies
-    for(let i = 0; i < levels[dude.level-1].spawns.length; i++)
+    for(let i = 0; i < LEVELS[dude.level-1].spawns.length; i++)
     {
-        spawn_enemy(game, levels[dude.level-1].spawns[i]);
+        spawn_enemy(game, LEVELS[dude.level-1].spawns[i]);
     }
     game.ui.baddies_left.setText("Enemies Remaining " + baddies.length);
 }
@@ -545,9 +406,21 @@ function playerDamage(game, damage)
     }
 }
 
-function levelComplete()
+function levelComplete(game)
 {
     dude.level ++;
+    for(const ghost of ghosts)
+    {
+        ghost.sprite.destroy();
+    }
+    for(const bullet of bullets)
+    {
+        bullet.sprite.destroy();
+    }
+    bullets = [];
+    ghosts = [];
+    stored_actions = [];
+    restartTimeLoop(game, true)
 }
 
 

@@ -1,0 +1,126 @@
+[ 
+    {
+    "level": 1,
+    "spawns": [
+        {
+            "info": "crabby",
+            "x": 1050,
+            "y": 200,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "crabby",
+            "x": 1000,
+            "y": 250,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "crabby",
+            "x": 1050,
+            "y": 300,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "crabby",
+            "x": 1000,
+            "y": 350,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "crabby",
+            "x": 1050,
+            "y": 400,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "crabby",
+            "x": 1000,
+            "y": 450,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "crabby",
+            "x": 1050,
+            "y": 500,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "crabby",
+            "x": 1000,
+            "y": 550,
+            "xvel": -2,
+            "yvel": 0
+        }
+    ] 
+},
+
+{
+    "level": 2,
+    "spawns": 
+    [
+        {
+            "info": "bug",
+            "x": 1050,
+            "y": 200,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "bug",
+            "x": 1000,
+            "y": 250,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "bug",
+            "x": 1050,
+            "y": 300,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "bug",
+            "x": 1000,
+            "y": 350,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "bug",
+            "x": 1050,
+            "y": 400,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "bug",
+            "x": 1000,
+            "y": 450,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "bug",
+            "x": 1050,
+            "y": 500,
+            "xvel": -2,
+            "yvel": 0
+        },
+        {
+            "info": "bug",
+            "x": 1000,
+            "y": 550,
+            "xvel": -2,
+            "yvel": 0
+        }
+    ] 
+}
+]
