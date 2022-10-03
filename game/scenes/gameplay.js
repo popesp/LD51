@@ -344,9 +344,9 @@ export default new Phaser.Class({
             {
                 dude.sprite.x = dude.width/2 + 40;
             }
-            if(dude.sprite.x + dude.width/2 + 30 > MAP_WIDTH)
+            if(dude.sprite.x + dude.width/2 - 10 > MAP_WIDTH)
             {
-                dude.sprite.x = MAP_WIDTH - dude.width/2 - 30;
+                dude.sprite.x = MAP_WIDTH - dude.width/2 + 10;
             }
 
             if(dude.sprite.y - dude.height/2 - 30 < 0)
@@ -790,8 +790,8 @@ function restartTimeLoop(game, nextlevel)
         game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
         game.ui.health_display.setText("Health: " + dude.hp_current);
         // off set to side
-        // dude.sprite.x = MAP_WIDTH/2 - ((ghosts.length+1) * dude.width);
-        // dude.sprite.y = MAP_HEIGHT/2;
+        dude.sprite.x = MAP_WIDTH/2;
+        dude.sprite.y = MAP_HEIGHT/2;
         stored_actions = [];
         
         //remove bullets
