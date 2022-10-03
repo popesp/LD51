@@ -4,56 +4,56 @@
         "spawns": [
             {
                 "info": "eyeball",
-                "x": 1050,
+                "x": 1450,
                 "y": 200,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "eyeball",
-                "x": 1000,
+                "x": 1400,
                 "y": 250,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "eyeball",
-                "x": 1050,
+                "x": 1450,
                 "y": 300,
                 "xvel": -2,
                 "yvel": 0
             },
             {
-                "info": "eyeball",
-                "x": 1000,
+                "info": "scampy",
+                "x": 1400,
                 "y": 350,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "eyeball",
-                "x": 1050,
+                "x": 1450,
                 "y": 400,
                 "xvel": -2,
                 "yvel": 0
             },
             {
-                "info": "eyeball",
-                "x": 1000,
+                "info": "scampy",
+                "x": 1400,
                 "y": 450,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "eyeball",
-                "x": 1050,
+                "x": 1450,
                 "y": 500,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "eyeball",
-                "x": 1000,
+                "x": 1400,
                 "y": 550,
                 "xvel": -2,
                 "yvel": 0
@@ -67,56 +67,56 @@
         [
             {
                 "info": "scampy",
-                "x": 1050,
+                "x": 1450,
                 "y": 200,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "scampy",
-                "x": 1000,
+                "x": 1400,
                 "y": 250,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "scampy",
-                "x": 1050,
+                "x": 1450,
                 "y": 300,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "scampy",
-                "x": 1000,
+                "x": 1400,
                 "y": 350,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "scampy",
-                "x": 1050,
+                "x": 1450,
                 "y": 400,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "scampy",
-                "x": 1000,
+                "x": 1400,
                 "y": 450,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "scampy",
-                "x": 1050,
+                "x": 1450,
                 "y": 500,
                 "xvel": -2,
                 "yvel": 0
             },
             {
                 "info": "scampy",
-                "x": 1000,
+                "x": 1400,
                 "y": 550,
                 "xvel": -2,
                 "yvel": 0
@@ -129,7 +129,7 @@
         [
             {
                 "info": "fomp",
-                "x": 1050,
+                "x": 1450,
                 "y": 200,
                 "xvel": -2,
                 "yvel": 0

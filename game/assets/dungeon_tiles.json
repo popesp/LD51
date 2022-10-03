@@ -1,0 +1,40 @@
+{
+	"frames": [
+		{
+			"filename": "floor-1",
+			"frame": {"x": 16, "y": 64, "w": 16, "h": 16}
+		},
+        {
+			"filename": "floor-2",
+			"frame": {"x": 16, "y": 80, "w": 16, "h": 16}
+		},
+        {
+			"filename": "floor-3",
+			"frame": {"x": 16, "y": 96, "w": 16, "h": 16}
+		},
+        {
+			"filename": "floor-4",
+			"frame": {"x": 24, "y": 64, "w": 16, "h": 16}
+		},
+        {
+			"filename": "floor-5",
+			"frame": {"x": 24, "y": 80, "w": 16, "h": 16}
+		},
+        {
+			"filename": "top-wall",
+			"frame": {"x": 16, "y": 0, "w": 16, "h": 16}
+		},
+        {
+			"filename": "wall",
+			"frame": {"x": 16, "y": 16, "w": 16, "h": 16}
+		},
+        {
+			"filename": "left-wall",
+			"frame": {"x": 16, "y": 128, "w": 16, "h": 16}
+		},
+        {
+			"filename": "right-wall",
+			"frame": {"x": 16, "y": 128, "w": 16, "h": 16}
+		}
+    ]
+}

@@ -26,7 +26,7 @@ let baddies = [];
 let ghosts = [];
 let stored_actions = [];
 const fireRate = 600;
-let nextFire = 0;
+let nextFire = fireRate;
 const spawnRate = 1000;
 const bulletSpeed = 12;
 const hitInvince = 1000;
@@ -46,6 +46,8 @@ export default new Phaser.Class({
 	preload: function()
 	{
 		// this.load.image('bullet', 'assets/sprites/purple_ball.png');
+        this.load.atlas("tiles", "assets/dungeon_tiles.png", "assets/dungeon_tiles.json");
+        this.load.image('tile', 'assets/tile.png');
         this.load.image('bullet', 'assets/sprites/rifle_bullet.png');
         this.load.image('smoke_trail', 'assets/sprites/smoke_trail.png');
         this.load.image('blood', 'assets/sprites/blood.png');
@@ -92,14 +94,43 @@ export default new Phaser.Class({
         );
 
         //soundfx
-        this.load.audio("sniper", "assets/soundfx/sniper.mp3");
+        this.load.audio("magic_missle", "assets/soundfx/magic_missle.mp3");
+        this.load.audio("time_travel", "assets/soundfx/time_travel.mp3");
+        this.load.audio("theme", "assets/soundfx/theme.mp3");
+        this.load.audio("baddie_hit", "assets/soundfx/baddie_hit.wav");
+        this.load.audio("player_hit", "assets/soundfx/player_hit.wav");
+        this.load.audio("level_complete", "assets/soundfx/level_complete.mp3");
         
 	},
 	create: function()
 	{
-        this.cameras.main.setBackgroundColor('#FDFFFF')
+        let floor_tiles = ['floor-1','floor-1','floor-1','floor-1','floor-1','floor-1','floor-1','floor-1',
+        'floor-1','floor-1','floor-1','floor-1','floor-1','floor-1','floor-1','floor-1','floor-3', 'floor-4', 'floor-5'];
+
+
+        for(let i = 64; i < MAP_WIDTH - 64; i+=64)
+        {
+            for(let j = 64; j < MAP_HEIGHT; j+=64)
+            {
+                const display_tile_index = Math.floor(Math.random() * floor_tiles.length)
+                const display_tile = floor_tiles[display_tile_index];
+                this.add.image(i, j, "tiles", display_tile).setScale(4).setOrigin(0);
+            }
+        }
+ 
+        for(let i = 64; i < MAP_WIDTH-64; i+=64)
+        {
+            this.add.image(i, 0, "tiles", 'top-wall').setScale(4).setOrigin(0);
+            this.add.image(i, MAP_HEIGHT - 64, "tiles", 'top-wall').setScale(4).setOrigin(0);
+        }
+        for(let i = 64; i < MAP_HEIGHT; i+=64)
+        {
+            this.add.image(64, i, "tiles", 'left-wall').setScale(4).setOrigin(0);
+            this.add.image(MAP_WIDTH-64, i, "tiles", 'right-wall').setScale(4).setOrigin(0);
+        }
+
+
         //load sounds
-        this.sound.add("sniper");
 
         //load anims
         this.anims.create({
@@ -171,9 +202,9 @@ export default new Phaser.Class({
             bar_bg: this.add.graphics().fillStyle(0xcc2418, 1).fillRect(0, -2, 204, 38).setPosition(14, 14),
             bar: this.add.graphics().fillStyle(0xebb134, 1).fillRect(0, 0, 200, 30).setPosition(16, 16),
             health_display: this.add.text(52, 18, "Health: " + dude.hp_max, {fontSize: "24px", fill: "#000"}),
-            text_timer: this.add.text(500, 18, + timer + " SECONDS REMAIN", {fontSize: "24px", fill: "#000"}),
-            baddies_left: this.add.text(WIDTH_CANVAS-300, 18, "Enemies Remaining " + baddies.length, {fontSize: "24px", fill: "#000"}),
-            text_level: this.add.text(WIDTH_CANVAS-150, HEIGHT_CANVAS - 30, "LEVEL: " + dude.level, {fontSize: "24px", fill: "#00"})
+            text_timer: this.add.text(500, 18, + timer + " SECONDS REMAIN", {fontSize: "24px", fill: "white"}),
+            baddies_left: this.add.text(WIDTH_CANVAS-300, 18, "Enemies Remaining " + baddies.length, {fontSize: "24px", fill: "white"}),
+            text_level: this.add.text(WIDTH_CANVAS-150, HEIGHT_CANVAS - 30, "LEVEL: " + dude.level, {fontSize: "24px", fill: "white"})
         };
 
         for(const key_object in this.ui)
@@ -183,6 +214,9 @@ export default new Phaser.Class({
         second_count.paused = true;
 
         dude.sprite.play("idle");
+        this.music = this.sound.add("theme");
+        this.music.loop = true;
+        this.music.play({volume: 0.15});
         startLoop(this);
 	},
     update: function()
@@ -298,7 +332,7 @@ export default new Phaser.Class({
             move_bullets(this);
             move_baddies(this);
             move_ghosts(this);
-
+            //620
             if(stored_actions.length === 620)
             {
                 timer--;
@@ -334,17 +368,17 @@ function fire(game, mousex, mousey, spritex, spritey, reload)
 	{
         if(reload === true)
         {
-            // game.sound.play("sniper", {volume: 0.05});
+            game.sound.play("magic_missle", {volume: 0.2});
             nextFire = game.time.now + fireRate;
+            dude.sprite.anims.play("fire");
         }
         else
         {
-            // game.sound.play("sniper", {volume: 0.02});
+            game.sound.play("magic_missle", {volume: 0.1});
         }
         
         const xvelocity = (mousex - spritex + 15);
         const yvelocity = (mousey - spritey + 15);
-        // const angle = Math.atan2(yvelocity, xvelocity);
         const vector_length = Math.sqrt(xvelocity**2 + yvelocity**2);
         bullets.push({   
             sprite: game.add.sprite(spritex + (xvelocity/vector_length)*80, spritey + (yvelocity/vector_length)*80, 'bullet'),
@@ -354,7 +388,6 @@ function fire(game, mousex, mousey, spritex, spritey, reload)
             life: 100,
             delete: false
         })
-        dude.sprite.anims.play("fire");
         game.emitter_shoot.explode(40, spritex + (xvelocity/vector_length)*60, spritey + (yvelocity/vector_length)*60);
     }
 }
@@ -397,6 +430,7 @@ function move_bullets(game)
 			{
 				if(Math.abs(bullet.sprite.x - baddie.sprite.x) < baddie.width/2 && Math.abs(bullet.sprite.y - baddie.sprite.y) < baddie.height/2)
 				{
+                    game.sound.play("baddie_hit", {volume: 0.5});
                     game.emitter_blood.explode(5, bullet.sprite.x, bullet.sprite.y);
 					baddie.hp -= bullet.damage;
                     bullet.delete = true;
@@ -541,6 +575,7 @@ function playerDamage(game, damage)
     //if not invincable from being hit 
     if (nextInvince < game.time.now)
     {
+        game.sound.play("player_hit", {volume: 1.0});
         dude.hp_current -= damage;
         game.ui.health_display.setText("Health: " + dude.hp_current);
         game.ui.bar.scaleX = dude.hp_current/dude.hp_max;
@@ -649,6 +684,7 @@ function restartTimeLoop(game, nextlevel)
         scene_playing = true;
         second_count.paused  = true;
         game.emitter_time_effect.explode(80, dude.sprite.x, dude.sprite.y);
+        game.sound.play("time_travel", {volume: 0.2});
 
         setTimeout(function(){
             ghosts.push({
@@ -706,7 +742,8 @@ function levelComplete(game)
 {
     scene_playing = true;
     second_count.paused  = true;
-    const level_done_text = game.add.text(WIDTH_CANVAS/2 , HEIGHT_CANVAS/2, "LEVEL COMPLETE", {fontFamily: FONT_TITLE, color: "white", fontSize: "60px"}).setOrigin(0.5);
+    game.sound.play("level_complete", {volume: 0.5});
+    const level_done_text = game.add.text(WIDTH_CANVAS/2 , HEIGHT_CANVAS/2, "LEVEL COMPLETE", {fontFamily: FONT_TITLE, color: "white", fontSize: "60px"}).setOrigin(0.5).setScrollFactor(0).setDepth(4);
     game.emitter_time_effect.explode(300, dude.sprite.x, dude.sprite.y);
     setTimeout(function(){
         level_done_text.setText("");
@@ -719,6 +756,7 @@ function levelComplete(game)
         }
         ghosts = [];
         stored_actions = [];
+        game.ui.text_level.setText("LEVEL: " + dude.level);
         restartTimeLoop(game, true)
     },3000);
 }

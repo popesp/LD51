@@ -11,13 +11,14 @@ document.addEventListener('DOMContentLoaded', function()
 	const dom_container = document.getElementById('container');
 
 	const game = new Phaser.Game({
+		pixelArt: true,
 		type: Phaser.AUTO,
 		title: 'LD51',
 		parent: dom_container,
 		width: WIDTH_CANVAS,
 		height: HEIGHT_CANVAS,
 		scene: [scene_menu, gameplay],
-		backgroundColor: COLOR_BACKGROUND
+		backgroundColor: COLOR_BACKGROUND,
 	});
 
 	function resize()
