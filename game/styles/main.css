@@ -16,4 +16,22 @@ canvas
 	image-rendering: -webkit-crisp-edges;
 	image-rendering: pixelated;
 	image-rendering: crisp-edges;
+	z-index: 1;
+}
+
+.hidden
+{
+	display: none;
+}
+
+#crosshair
+{
+	background-color: #ffffff;
+	height: 2px;
+	left: 50%;
+	position: absolute;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 2px;
+	z-index: 2;
 }

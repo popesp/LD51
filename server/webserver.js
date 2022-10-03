@@ -11,7 +11,8 @@ const TYPEMAP = {
 	'.js': 'application/javascript',
 	'.css': 'text/css',
 	'.png': 'image/png',
-	'.ico': 'image/x-icon'
+	'.ico': 'image/x-icon',
+	'.json': 'application/json'
 };
 
 

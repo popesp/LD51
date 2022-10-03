@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 
-const DEBUG = true;
+export const DEBUG = true;
 
 export function log(...params)
 {

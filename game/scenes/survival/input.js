@@ -1,10 +1,10 @@
 /**
- * @typedef Event
+ * @typdef KeyState
  * @type {Object}
- * @property {HTMLElement} element
- * @property {string} key
- * @property {() => void} callback
+ * @property {boolean} down Is the key currently down
+ * @property {boolean} pressed Was the key recently pressed
  */
+
 
 export default class InputManager
 {
@@ -13,71 +13,89 @@ export default class InputManager
 	 */
 	constructor()
 	{
-		/** @type {Event[]} */
-		this.events = [];
-
 		/** @type {Object} */
 		this.keys = {};
 
-		this.clear();
-	}
+		this.mouse = {
+			down: false,
+			pressed: false,
+			x: 0,
+			y: 0
+		};
 
-	/**
-	 * Clear all events and reset key down listeners.
-	 */
-	clear()
-	{
-		for(const event of this.events)
-			event.element.removeEventListener(event.key, event.callback);
-
-		this.events = [];
-		this._add(document, 'keydown', event =>
+		this._mousedown = () =>
 		{
-			this.keys[event.code] = true;
-		});
-		this._add(document, 'keyup', event =>
+			this.mouse.down = true;
+			this.mouse.pressed = true;
+		};
+
+		this._mouseup = () =>
 		{
-			this.keys[event.code] = false;
-		});
+			this.mouse.down = false;
+		};
+
+		this._mousemove = event =>
+		{
+			this.mouse.x = event.movementX;
+			this.mouse.y = event.movementY;
+		};
+
+		this._keypress = event =>
+		{
+			const key = this.key(event.code);
+			key.down = true;
+			key.pressed = true;
+		};
+
+		this._keyup = event =>
+		{
+			const key = this.key(event.code);
+			key.down = false;
+		};
+
+		document.addEventListener('mousedown', this._mousedown);
+		document.addEventListener('mouseup', this._mouseup);
+		document.addEventListener('mousemove', this._mousemove);
+		document.addEventListener('keypress', this._keypress);
+		document.addEventListener('keyup', this._keyup);
 	}
 
 	/**
-	 * Add an event listener.
-	 * @param {HTMLElement} element Element to listen to
-	 * @param {string} key Event type
-	 * @param {EventListenerOrEventListenerObject} callback Listener callback
+	 * Update pressed state for all inputs.
 	 */
-	_add(element, key, callback)
+	update()
 	{
-		element.addEventListener(key, callback);
-		this.events.push({element, key, callback});
+		for(const key of Object.values(this.keys))
+			key.pressed = false;
+		this.mouse.pressed = false;
+		this.mouse.x = 0;
+		this.mouse.y = 0;
 	}
 
 	/**
-	 * Add a mouse move listener.
-	 * @param {(event:MouseEvent) => void} callback Callback fired whenever the mouse is moved
+	 * Clean up all input listeners.
 	 */
-	mouse(callback)
+	destroy()
 	{
-		this._add(document, 'mousemove', callback);
+		document.removeEventListener('mousedown', this._mousedown);
+		document.removeEventListener('mouseup', this._mouseup);
+		document.removeEventListener('mousemove', this._mousemove);
+		document.removeEventListener('keypress', this._keypress);
+		document.removeEventListener('keyup', this._keyup);
 	}
 
 	/**
-	 * Add a mouse click listener.
-	 * @param {(event:MouseEvent) => void} callback Callback fired whenever the mouse is clicked
+	 * Return the input state for a given key.
+	 * @param {string} code Key code
+	 * @returns {KeyState} Key input state
 	 */
-	click(callback)
+	key(code)
 	{
-		this._add(document, 'click', callback);
-	}
+		const key = this.keys[code] ??= {
+			down: false,
+			pressed: false
+		};
 
-	/**
-	 * Get the pressed status of a given key.
-	 * @param {string} code Key code to query
-	 * @returns {boolean} True if the key is pressed, false otherwise
-	 */
-	getKey(code)
-	{
-		return Boolean(this.keys[code]);
+		return key;
 	}
 }

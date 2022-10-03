@@ -1,8 +1,10 @@
-import {OBJLoader} from 'objloader';
+import Stats from 'stats';
 import * as THREE from 'three';
-import {bulletMesh, Bullet} from './bullet.js';
-import {enemyMesh, Enemy} from './enemy.js';
-import Player from './player.js';
+import Bullet from './entities/bullet.js';
+import Enemy from './entities/enemy.js';
+import Player from './entities/player.js';
+import GameoverScene from '../gameover.js';
+import {DEBUG} from '../../debug.js';
 import {WIDTH_CANVAS, HEIGHT_CANVAS} from '../../globals.js';
 
 
@@ -25,19 +27,20 @@ const LIGHT_POSITIONS = [
 	[LIGHT_SPACING, LIGHT_Y, -LIGHT_SPACING]
 ];
 
-const PLATFORM_RADIUS = 40;
+const PLATFORM_RADIUS = 80;
 const PLATFORM_HEIGHT = 1000000;
 const PLATFORM_TESSELATION = 128;
 const PLATFORM_COLOR = 0x604040;
 
 const ENEMY_SPAWN_HEIGHT = 5;
-const ENEMY_POSITIONS = [
-	[0, ENEMY_SPAWN_HEIGHT, 0]
+const ENEMY_SPAWNS = [
+	{type: 'sphere', position: [0, ENEMY_SPAWN_HEIGHT, 0]},
+	{type: 'floater', position: [20, ENEMY_SPAWN_HEIGHT, -20]},
+	{type: 'conehead', position: [-40, ENEMY_SPAWN_HEIGHT, 30]}
 ];
 
 const MAX_BULLETS = 100;
 const MAX_ENEMIES = 10;
-
 
 export default class SurvivalScene
 {
@@ -50,14 +53,15 @@ export default class SurvivalScene
 		/** @type {Game} */
 		this.game = game;
 
-		game.renderer.shadowMap.enabled = true;
-		game.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
 		/** @type {THREE.Scene} */
 		const three = this.three = new THREE.Scene();
 
 		/** @type {THREE.PerspectiveCamera} */
 		this.camera = new THREE.PerspectiveCamera(FOV, WIDTH_CANVAS/HEIGHT_CANVAS, DEPTH_NEAR, DEPTH_FAR);
+
+		/** @type {THREE.AudioListener} */
+		this.listener = new THREE.AudioListener();
+		this.camera.add(this.listener);
 
 		/** @type {Player} */
 		this.player = new Player(this, X_SPAWN, Z_SPAWN);
@@ -70,24 +74,8 @@ export default class SurvivalScene
 		platform.position.y = -PLATFORM_HEIGHT/2;
 		platform.receiveShadow = true;
 
-		const manager = new THREE.LoadingManager();
-		const loader = new OBJLoader(manager);
-		loader.load('/assets/meshes/magnimite.obj', obj =>
-		{
-			this.enemyMesh = enemyMesh(obj.children[0].geometry, MAX_ENEMIES);
-			three.add(this.enemyMesh);
-
-			this.enemies.push(...ENEMY_POSITIONS.map(position => new Enemy(this, new THREE.Vector3(...position))));
-		});
-
-		/** @type {Enemy[]} */
-		this.enemies = [];
-
-		/** @type {THREE.InstancedMesh} */
-		this.bulletMesh = bulletMesh(MAX_BULLETS);
-
-		/** @type {Bullet[]} */
-		this.bullets = new Array(MAX_BULLETS);
+		/** @type {Entity[]} */
+		this.entities = [this.player];
 
 		const lights = LIGHT_POSITIONS.map(position =>
 		{
@@ -97,7 +85,54 @@ export default class SurvivalScene
 			return light;
 		});
 
-		three.add(platform, this.bulletMesh, ...lights);
+		three.add(platform, ...lights);
+	}
+
+	initialize()
+	{
+		return Promise.all([
+			Bullet.initialize(MAX_BULLETS),
+			Enemy.initialize(MAX_ENEMIES),
+			Player.initialize(this.listener)
+		]).then(() =>
+		{
+			for(const mesh of [Bullet.mesh, ...Object.values(Enemy.types).map(type => type.mesh)])
+			{
+				mesh.count = 0;
+				this.three.add(mesh);
+			}
+		});
+	}
+
+	start()
+	{
+		this.game.renderer.shadowMap.enabled = true;
+		this.game.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+		if(DEBUG)
+		{
+			/** @type {Stats} */
+			this.stats = new Stats();
+			document.body.appendChild(this.stats.dom);
+		}
+
+		document.getElementById('crosshair').className = '';
+		document.body.requestPointerLock();
+
+		for(const {type, position: [x, y, z]} of ENEMY_SPAWNS)
+			this.spawnEnemy(new THREE.Vector3(x, y, z), type);
+	}
+
+	spawnEntity(entity)
+	{
+		for(let index_entity = 0; index_entity < this.entities.length; ++index_entity)
+			if(!this.entities[index_entity].alive)
+			{
+				this.entities[index_entity] = entity;
+				return;
+			}
+		
+		this.entities.push(entity);
 	}
 
 	/**
@@ -107,12 +142,25 @@ export default class SurvivalScene
 	 */
 	spawnBullet(position, direction)
 	{
-		for(let index_bullet = 0; index_bullet < this.bullets.length; ++index_bullet)
-			if(!this.bullets[index_bullet]?.alive)
-			{
-				this.bullets[index_bullet] = new Bullet(this, position, direction);
-				break;
-			}
+		this.spawnEntity(new Bullet(this, position, direction));
+	}
+
+	/**
+	 * Attempt to spawn an enemy in the scene.
+	 * @param {THREE.Vector3} position Initial position of the enemy
+	 */
+	spawnEnemy(position, type)
+	{
+		this.spawnEntity(new Enemy(this, position, Enemy.types[type]));
+	}
+
+	/**
+	 * Get a list of living enemies in the scene.
+	 * @returns {Enemy[]} List of enemies
+	 */
+	getEnemies()
+	{
+		return this.entities.filter(entity => entity.type === 'enemy' && entity.alive);
 	}
 
 	/**
@@ -121,48 +169,38 @@ export default class SurvivalScene
 	 */
 	update(dt)
 	{
-		this.player.update(dt);
+		if(DEBUG)
+			this.stats.update();
 
 		const dummy = new THREE.Object3D();
 		dummy.rotation.order = 'YXZ';
 
-		if(this.enemyMesh)
-		{
-			this.enemyMesh.count = 0;
-			const enemies = this.enemies.filter(enemy => Boolean(enemy));
-			for(const enemy of enemies)
-				if(enemy.alive)
-				{
-					enemy.update(dt);
+		// reset all unique mesh counts
+		for(const mesh of Array.from(new Set(this.entities.map(entity => entity.mesh).filter(m => Boolean(m)))))
+			mesh.count = 0;
 
-					dummy.position.copy(enemy.position);
-					dummy.rotation.set(0, 0, 0);
-
-					dummy.updateMatrix();
-					this.enemyMesh.setMatrixAt(this.enemyMesh.count++, dummy.matrix);
-				}
-
-			this.enemyMesh.instanceMatrix.needsUpdate = true;
-		}
-
-		this.bulletMesh.count = 0;
-		const bullets = this.bullets.filter(bullet => Boolean(bullet));
-		for(const bullet of bullets)
-			if(bullet.alive)
+		for(const entity of this.entities)
+			if(entity.alive)
 			{
-				bullet.update(dt);
-				const xz = Math.sqrt(bullet.speed.x**2 + bullet.speed.z**2);
+				entity.update(dt);
 
-				dummy.position.copy(bullet.position);
-				dummy.rotation.x = Math.atan2(-bullet.speed.y, xz);
-				dummy.rotation.y = Math.atan2(bullet.speed.x, bullet.speed.z);
-				dummy.rotation.z = bullet.spin;
+				if(entity.mesh)
+				{
+					dummy.position.copy(entity.position);
+					dummy.rotation.copy(entity.rotation);
+					dummy.updateMatrix();
 
-				dummy.updateMatrix();
-				this.bulletMesh.setMatrixAt(this.bulletMesh.count++, dummy.matrix);
+					const index = entity.mesh.count++;
+					entity.mesh.setMatrixAt(index, dummy.matrix);
+					entity.mesh.setColorAt(index, entity.color);
+
+					entity.mesh.instanceMatrix.needsUpdate = true;
+					entity.mesh.instanceColor.needsUpdate = true;
+				}
 			}
 
-		this.bulletMesh.instanceMatrix.needsUpdate = true;
+		if(!this.player.alive)
+			this.game.switchScene(new GameoverScene(this.game));
 
 		this.game.renderer.render(this.three, this.camera);
 	}
@@ -174,6 +212,13 @@ export default class SurvivalScene
 	{
 		this.three.clear();
 		this.player.destroy();
-		this.bulletMesh.dispose();
+
+		if(DEBUG)
+			this.stats.dom.remove();
+
+		Bullet.destroy();
+		Enemy.destroy();
+
+		document.getElementById('crosshair').className = 'hidden';
 	}
 }

@@ -4,7 +4,7 @@ import {WIDTH_CANVAS, HEIGHT_CANVAS} from './globals.js';
 
 const SECONDS_PER_MS = 0.001;
 const DT_MIN = 0.033333333333;
-const PIXELSIZE = 8;
+const PIXELSIZE = 4;
 
 
 export default class Game
@@ -38,7 +38,7 @@ export default class Game
 				this.t_last = t;
 
 			const dt = Math.min(DT_MIN, SECONDS_PER_MS*(t - this.t_last));
-			this.scene_active?.update(dt);
+			this.scene_active?.update?.(dt);
 
 			this.t_last = t;
 			this.id_frame = requestAnimationFrame(this.step);
@@ -73,7 +73,14 @@ export default class Game
 	 */
 	switchScene(scene)
 	{
-		this.scene_active?.destroy();
-		this.scene_active = scene;
+		this.scene_active?.destroy?.();
+		this.scene_active = null;
+
+		const ready = scene.initialize?.() ?? Promise.resolve();
+		ready.then(() =>
+		{
+			scene.start?.();
+			this.scene_active = scene;
+		});
 	}
 }

@@ -1,0 +1,27 @@
+{
+	"floater": {
+		"radius": 4,
+		"life": 4,
+		"color": "#FFFFFF"
+	},
+	"conehead": {
+		"radius": 6,
+		"life": 20,
+		"color": "#FFFFFF"
+	},
+	"enemy": {
+		"radius": 4,
+		"life": 4,
+		"color": "#FFFFFF"
+	},
+	"sphere": {
+		"radius": 4,
+		"life": 4,
+		"color": "#FFFFFF"
+	},
+	"sphere2": {
+		"radius": 4,
+		"life": 4,
+		"color": "#FFFFFF"
+	}
+}
