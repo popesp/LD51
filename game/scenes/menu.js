@@ -102,7 +102,7 @@ export default new Phaser.Class({
 		dude.sprite = this.add.sprite(WIDTH_CANVAS/2 - 16, HEIGHT_CANVAS/2, "run").setDisplaySize(256, 320).setDepth(2);
 		dude.sprite.play("run", true);
 
-		const credit_text = this.add.text(0, 680, "GAME, ART, AND MUSIC BY: DAN", {fontFamily: FONT_TITLE, fontSize: "15px", fixedWidth: WIDTH_CANVAS, fixedHeight: 32, align: "center"}).setOrigin(0, 0).setDepth(2);
+		const credit_text = this.add.text(0, 680, "MADE BY: DAN", {fontFamily: FONT_TITLE, fontSize: "15px", fixedWidth: WIDTH_CANVAS, fixedHeight: 32, align: "center"}).setOrigin(0, 0).setDepth(2);
 
 		const start_game_text = this.add.text(WIDTH_CANVAS/2, HEIGHT_CANVAS/2 + Y_START_BUTTON, "PLAY GAME", {fontFamily: FONT_DEFAULT, color: "white", fontSize: "48px"}).setOrigin(0.5).setDepth(2);
 		const start_game_container = this.add.container(WIDTH_CANVAS/2, HEIGHT_CANVAS/2+Y_START_BUTTON);
