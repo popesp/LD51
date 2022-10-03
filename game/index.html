@@ -4,12 +4,25 @@
 		<meta charset="utf-8">
 		<title>LD51</title>
 		<link rel="shortcut icon" href="assets/favicon.ico"/>
+		<style media="screen" type="text/css">
+			@font-face {
+				font-family: "PTSerif";
+				src: url("assets/PTSerif-Regular.ttf");
+			}
+			@font-face {
+				font-family: "JosefinSlab";
+				src: url("assets/JosefinSlab.ttf");
+			}
+		</style>
 		<link rel="stylesheet" href="styles/main.css">
 		<script type="module" src="scenes/gameplay.js"></script>
+		<script type="module" src="scenes/howtoplay.js"></script>
 		<script src="phaser/phaser.js"></script>
 		<script type="module" src="main.js"></script>
 	</head>
 	<body>
+		<div style="font-family: 'PTSerif'; position: absolute; left: -1000px;">-</div>
+		<div style="font-family: 'JosefinSlab'; position: absolute; left: -1000px;">-</div>
 		<div id="container"></div>
 	</body>
 </html>

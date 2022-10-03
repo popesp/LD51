@@ -1,7 +1,6 @@
 import {WIDTH_CANVAS, PADDING_CANVAS, HEIGHT_CANVAS, FONT_DEFAULT, FONT_TITLE} from '../globals.js';
 import LEVELS from '../data/LEVELS.json' assert { type: "json" };
 import BADDIES from '../data/baddies.json' assert { type: "json" };
-import {PseudoRandom} from '../random.js';
 
 
 const MAP_WIDTH = 1500;
@@ -18,12 +17,13 @@ const dude = {
     height: 128,
     hp_max: 5,
     hp_current: 5,
-    level: 4
+    level: 1
 }
 
 let bullets = [];
 let baddies = [];
 let ghosts = [];
+let ghost_count = 0;
 let stored_actions = [];
 const fireRate = 600;
 let nextFire = fireRate;
@@ -36,7 +36,6 @@ let second_count;
 let nextInvince = 0;
 let scene_playing = false;
 
-const random = new PseudoRandom(69);
 export default new Phaser.Class({
 	Extends: Phaser.Scene,
 	initialize: function()
@@ -47,7 +46,6 @@ export default new Phaser.Class({
 	{
 		// this.load.image('bullet', 'assets/sprites/purple_ball.png');
         this.load.atlas("tiles", "assets/dungeon_tiles.png", "assets/dungeon_tiles.json");
-        this.load.image('tile', 'assets/tile.png');
         this.load.image('bullet', 'assets/sprites/rifle_bullet.png');
         this.load.image('smoke_trail', 'assets/sprites/smoke_trail.png');
         this.load.image('blood', 'assets/sprites/blood.png');
@@ -157,6 +155,13 @@ export default new Phaser.Class({
             key: "fire",
             frames: this.anims.generateFrameNumbers("fire", {start: 4, end: 16}),
             frameRate: 30,
+        });
+
+        this.anims.create({
+            key: "victory",
+            frames: this.anims.generateFrameNumbers("fire", {start: 4, end: 16}),
+            frameRate: 30,
+            repeat: -1
         });
 
         this.anims.create({
@@ -734,6 +739,7 @@ function restartTimeLoop(game, nextlevel)
                 sprite: game.add.sprite(WIDTH_CANVAS/2, HEIGHT_CANVAS/2, 'dude').setDisplaySize(dude.width, dude.height).setDepth(1),
                 actions: stored_actions.slice()
             });
+            ghost_count ++;
             ghosts[ghosts.length-1].sprite.tint = 0xa5adb5;
             ghosts[ghosts.length-1].sprite.play("idle");
             scene_playing = false;
@@ -783,23 +789,45 @@ function restartTimeLoop(game, nextlevel)
 
 function levelComplete(game)
 {
-    scene_playing = true;
-    second_count.paused  = true;
-    game.sound.play("level_complete", {volume: 0.5});
-    const level_done_text = game.add.text(WIDTH_CANVAS/2 , HEIGHT_CANVAS/2, "LEVEL COMPLETE", {fontFamily: FONT_TITLE, color: "white", fontSize: "60px"}).setOrigin(0.5).setScrollFactor(0).setDepth(4);
-    game.emitter_time_effect.explode(300, dude.sprite.x, dude.sprite.y);
-    setTimeout(function(){
-        level_done_text.setText("");
-        scene_playing = false;
-        second_count.paused  = false;
-        dude.level ++;
-        for(const ghost of ghosts)
-        {
-            ghost.sprite.destroy();
-        }
-        ghosts = [];
-        stored_actions = [];
-        game.ui.text_level.setText("LEVEL: " + dude.level);
-        restartTimeLoop(game, true)
-    },3000);
+    if(dude.level == 5)
+    {
+        scene_playing = true;
+        second_count.paused  = true;
+        game.sound.play("level_complete", {volume: 0.5});
+        game.emitter_time_effect.explode(300, dude.sprite.x, dude.sprite.y);
+        dude.sprite.anims.play("victory");
+        const game_win_text = game.add.text(WIDTH_CANVAS/2 , HEIGHT_CANVAS/2, "YOU BEAT THE GAME", {fontFamily: FONT_TITLE, color: "white", fontSize: "60px"}).setOrigin(0.5).setScrollFactor(0).setDepth(4);
+        const ghost_count_text = game.add.text(WIDTH_CANVAS/2 , HEIGHT_CANVAS/2 + 60, "YOU TRAVELED BACK IN TIME " + ghost_count + " TIMES", {fontFamily: FONT_TITLE, color: "white", fontSize: "48px"}).setOrigin(0.5).setScrollFactor(0).setDepth(4);
+        game.cameras.main.fadeOut(10000, 0, 0, 0);
+        setTimeout(function(){
+            game.registry.destroy(); // destroy registry
+            game.events.off(); // disable all active events
+            game.scene.restart();
+        },10000);
+    }
+    else
+    {
+        scene_playing = true;
+        second_count.paused  = true;
+        game.sound.play("level_complete", {volume: 0.5});
+        const level_done_text = game.add.text(WIDTH_CANVAS/2 , HEIGHT_CANVAS/2, "LEVEL COMPLETE", {fontFamily: FONT_TITLE, color: "white", fontSize: "60px"}).setOrigin(0.5).setScrollFactor(0).setDepth(4);
+        game.emitter_time_effect.explode(300, dude.sprite.x, dude.sprite.y);
+        setTimeout(function(){
+            level_done_text.setText("");
+            scene_playing = false;
+            second_count.paused  = false;
+            dude.sprite.x = MAP_WIDTH/2;
+            dude.sprite.y = MAP_HEIGHT/2;
+            dude.level ++;
+            for(const ghost of ghosts)
+            {
+                ghost.sprite.destroy();
+            }
+            ghosts = [];
+            stored_actions = [];
+            game.ui.text_level.setText("LEVEL: " + dude.level);
+            restartTimeLoop(game, true)
+        },3000);
+    }
+
 }
