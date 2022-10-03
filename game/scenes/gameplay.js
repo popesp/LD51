@@ -211,7 +211,7 @@ export default new Phaser.Class({
 
 
         this.input.setDefaultCursor('url(assets/sprites/crosshair.png), pointer');
-        dude.sprite = this.add.sprite(MAP_WIDTH/2, MAP_HEIGHT/2, 'dude').setDisplaySize(dude.width, dude.height).setDepth(1);
+        dude.sprite = this.add.sprite(MAP_WIDTH/2, MAP_HEIGHT/2, 'dude').setDisplaySize(dude.width, dude.height).setDepth(4);
 
         this.cameras.main.startFollow(dude.sprite);
         this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
