@@ -19,18 +19,14 @@ export default new Phaser.Class({
 
         this.cursors = this.input.keyboard.addKeys("ENTER,SPACE");
 
-		// Text
-		// "THE ELDRITCH HORRORS, WAKING FROM THEIR ETERNAL\n\
-		// SLUMBER, HAVE BEGUN THEIR ASSAULT ON YOUR \nWORLD... IT IS UP TO YOU TO FIGHT BACK AND \nTRY TO DELAY THE INEVITABLE...\n\
-		// \nGameplay:\n\
-		const help_text = this.add.text(WIDTH_CANVAS/2, 200,
+		const help_text = this.add.text(WIDTH_CANVAS/2, 150,
 			"			Every 10 seconds you go back in time 10 seconds\n\
 			Use your past selves to defeat all enemies\n\
 			If a past self takes damage so do you!\n\
 			Friendly fire is on\n\
 			You heal when you go back in time, but so do enemies\n\
 			Use WASD or arrow keys to move\n\
-			Mouse and click to shoot magic",
+			Mouse and click to shoot magic\n\   Press R to restart current level",
 			{fontFamily: FONT_DEFAULT, color: "white", fontSize: "24px", align: "left", lineSpacing: 20});
 		help_text.setOrigin(0.5, 0);
 

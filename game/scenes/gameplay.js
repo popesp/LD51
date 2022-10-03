@@ -264,6 +264,12 @@ export default new Phaser.Class({
                     animation: dude.sprite.anims.currentAnim.key
                 }
             )
+            if(this.cursors.R.isDown)
+            {
+                dude.sprite.x = MAP_WIDTH/2;
+                dude.sprite.y = MAP_HEIGHT/2;
+                restartTimeLoop(this, true);
+            }
             if(left === right)
             {
                 if(dude.xvel > 0)
@@ -631,6 +637,8 @@ function playerDamage(game, damage)
             setTimeout(function(){
                 game_over_text.setText("");
                 game.cameras.main.setZoom(1)
+                dude.sprite.x = MAP_WIDTH/2;
+                dude.sprite.y = MAP_HEIGHT/2;
                 scene_playing = false;
                 second_count.paused  = false;
                 for(const ghost of ghosts)
