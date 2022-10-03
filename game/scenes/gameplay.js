@@ -17,7 +17,7 @@ const dude = {
     height: 128,
     hp_max: 5,
     hp_current: 5,
-    level: 5
+    level: 1
 }
 
 let bullets = [];
@@ -553,6 +553,14 @@ function move_baddies(game)
         {
             playerDamage(game, baddie.damage);
         }
+
+        if(dude.level === 5)
+        {
+            if (Math.abs(baddie.sprite.x - dude.sprite.x) < baddie.width/2 && Math.abs(baddie.sprite.y - dude.sprite.y) < baddie.height/2)
+            {
+                playerDamage(game, baddie.damage);
+            }
+        }
         //check if ghost hit
         for(const ghost of ghosts)
         {
@@ -787,6 +795,10 @@ function restartTimeLoop(game, nextlevel)
         {
             bullet.sprite.destroy();
         }
+        if(dude.level === 5)
+        {
+            game.ui.final_boss_hp_bg.scaleX = 1;
+        } 
         bullets = [];
 
         //remove baddies
