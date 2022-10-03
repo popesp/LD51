@@ -268,6 +268,12 @@ export default new Phaser.Class({
             {
                 dude.sprite.x = MAP_WIDTH/2;
                 dude.sprite.y = MAP_HEIGHT/2;
+                for(const ghost of ghosts)
+                {
+                    ghost.sprite.destroy();
+                }
+                ghosts = [];
+                stored_actions = [];
                 restartTimeLoop(this, true);
             }
             if(left === right)
