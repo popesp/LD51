@@ -34,7 +34,36 @@ const shot4 = {
 	yvel: 0
 }
 
-const shots = [shot1, shot2, shot3, shot4];
+const shot5 = {
+	x: -1,
+	y: 0,
+	xvel: 0,
+	yvel: 0
+}
+
+const shot6 = {
+	x: -1,
+	y: 0,
+	xvel: 0,
+	yvel: 0
+}
+
+const shot7 = {
+	x: -1,
+	y: 0,
+	xvel: 0,
+	yvel: 0
+}
+
+const shot8 = {
+	x: -1,
+	y: 0,
+	xvel: 0,
+	yvel: 0
+}
+
+
+const shots = [shot1, shot2, shot3, shot4, shot5, shot6, shot7, shot8];
 
 export default new Phaser.Class({
 	Extends: Phaser.Scene,

@@ -121,16 +121,23 @@ export default new Phaser.Class({
                 this.add.image(i, j, "tiles", display_tile).setScale(4).setOrigin(0);
             }
         }
+
+        
  
         for(let i = 64; i < MAP_WIDTH-64; i+=64)
         {
             this.add.image(i, 0, "tiles", 'top-wall').setScale(4).setOrigin(0);
             this.add.image(i, MAP_HEIGHT - 64, "tiles", 'top-wall').setScale(4).setOrigin(0);
         }
+        for(let i = 64; i < MAP_WIDTH-64; i+=64)
+        {
+            this.add.image(i, 64, "tiles", 'wall').setScale(4).setOrigin(0);;
+        }
+
         for(let i = 64; i < MAP_HEIGHT; i+=64)
         {
             this.add.image(64, i, "tiles", 'left-wall').setScale(4).setOrigin(0);
-            this.add.image(MAP_WIDTH-64, i, "tiles", 'right-wall').setScale(4).setOrigin(0);
+            this.add.image(MAP_WIDTH-10, i, "tiles", 'right-wall').setScale(4).setOrigin(0);
         }
 
 
@@ -337,18 +344,18 @@ export default new Phaser.Class({
             {
                 dude.sprite.x = dude.width/2 + 40;
             }
-            if(dude.sprite.x + dude.width/2 > MAP_WIDTH)
+            if(dude.sprite.x + dude.width/2 + 30 > MAP_WIDTH)
             {
-                dude.sprite.x = MAP_WIDTH - dude.width/2;
+                dude.sprite.x = MAP_WIDTH - dude.width/2 - 30;
             }
 
-            if(dude.sprite.y - dude.height/2 - 50 < 0)
+            if(dude.sprite.y - dude.height/2 - 30 < 0)
             {
-                dude.sprite.y = dude.height/2 + 50;
+                dude.sprite.y = dude.height/2 + 30;
             }
-            if(dude.sprite.y + dude.height/2 > MAP_HEIGHT)
+            if(dude.sprite.y + dude.height/2 - 10 > MAP_HEIGHT)
             {
-                dude.sprite.y = MAP_HEIGHT - dude.height/2;
+                dude.sprite.y = MAP_HEIGHT - dude.height/2 + 10;
             }
 
             if(this.input.mousePointer.x + this.cameras.main._scrollX < dude.sprite.x)
@@ -795,7 +802,7 @@ function restartTimeLoop(game, nextlevel)
         {
             bullet.sprite.destroy();
         }
-        if(dude.level === 5)
+        if(dude.level === 5 && game.ui.final_boss_hp_bg !== undefined)
         {
             game.ui.final_boss_hp_bg.scaleX = 1;
         } 
@@ -825,15 +832,19 @@ function levelComplete(game)
         second_count.paused  = true;
         game.sound.play("level_complete", {volume: 0.5});
         game.emitter_time_effect.explode(300, dude.sprite.x, dude.sprite.y);
+        game.emitter_blood.explode(50, 1050, 200);
+        game.emitter_blood.explode(50, 1000, 200);
+        game.emitter_blood.explode(50, 1100, 200);
+        game.emitter_blood.explode(50, 1050, 250);
+        game.emitter_blood.explode(50, 1000, 250);
+        game.emitter_blood.explode(50, 1100, 250);
+        game.emitter_blood.explode(50, 1050, 300);
+        game.emitter_blood.explode(50, 1000, 300);
+        game.emitter_blood.explode(50, 1100, 300);
         dude.sprite.anims.play("victory");
         const game_win_text = game.add.text(WIDTH_CANVAS/2 , HEIGHT_CANVAS/2, "YOU BEAT THE GAME", {fontFamily: FONT_TITLE, color: "white", fontSize: "60px"}).setOrigin(0.5).setScrollFactor(0).setDepth(4);
         const ghost_count_text = game.add.text(WIDTH_CANVAS/2 , HEIGHT_CANVAS/2 + 60, "YOU TRAVELED BACK IN TIME " + ghost_count + " TIMES", {fontFamily: FONT_TITLE, color: "white", fontSize: "48px"}).setOrigin(0.5).setScrollFactor(0).setDepth(4);
         game.cameras.main.fadeOut(10000, 0, 0, 0);
-        setTimeout(function(){
-            game.registry.destroy(); // destroy registry
-            game.events.off(); // disable all active events
-            game.scene.restart();
-        },10000);
     }
     else
     {
