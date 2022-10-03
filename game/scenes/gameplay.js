@@ -1,6 +1,6 @@
 import {WIDTH_CANVAS, PADDING_CANVAS, HEIGHT_CANVAS, FONT_DEFAULT, FONT_TITLE} from '../globals.js';
-import LEVELS from '../data/LEVELS.json' assert { type: "json" };
-import BADDIES from '../data/baddies.json' assert { type: "json" };
+import LEVELS from '../data/LEVELS.js';
+import BADDIES from '../data/baddies.js';
 
 
 const MAP_WIDTH = 1500;

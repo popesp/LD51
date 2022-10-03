@@ -1,3 +1,4 @@
+export default
 {
     "eyeball": {
         "name": "eyeball",
