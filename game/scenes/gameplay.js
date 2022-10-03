@@ -17,7 +17,7 @@ const dude = {
     height: 128,
     hp_max: 5,
     hp_current: 5,
-    level: 1
+    level: 5
 }
 
 let bullets = [];
@@ -275,6 +275,10 @@ export default new Phaser.Class({
                 ghosts = [];
                 stored_actions = [];
                 restartTimeLoop(this, true);
+                if(dude.level === 5)
+                {
+                    this.ui.final_boss_hp_bg.scaleX = 1;
+                } 
             }
             if(left === right)
             {
