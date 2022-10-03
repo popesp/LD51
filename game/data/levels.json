@@ -129,17 +129,59 @@
         [
             {
                 "info": "fomp",
-                "x": 1450,
-                "y": 200,
-                "xvel": -2,
+                "x": 130,
+                "y": 100,
+                "xvel": 0,
                 "yvel": 0
             },
             {
                 "info": "fomp",
-                "x": 1000,
-                "y": 250,
+                "x": 1370,
+                "y": 900,
+                "xvel": 0,
+                "yvel": 0
+            },
+            {
+                "info": "fomp",
+                "x": 1370,
+                "y": 100,
+                "xvel": 0,
+                "yvel": 0
+            },
+            {
+                "info": "fomp",
+                "x": 130,
+                "y": 900,
+                "xvel": 0,
+                "yvel": 0
+            },
+            {
+                "info": "peeker",
+                "x": 1400,
+                "y": 550,
                 "xvel": -2,
                 "yvel": 0
+            },
+            {
+                "info": "peeker",
+                "x": 70,
+                "y": 550,
+                "xvel": 2,
+                "yvel": 0
+            },
+            {
+                "info": "peeker",
+                "x": 700,
+                "y": 50,
+                "xvel": 0,
+                "yvel": 2
+            },
+            {
+                "info": "peeker",
+                "x": 700,
+                "y": 900,
+                "xvel": 0,
+                "yvel": -2
             }
         ]
     },
@@ -147,18 +189,82 @@
         "level": 4,
         "spawns": 
         [
+        {
+            "info": "eyeball",
+            "x": 1300,
+            "y": 550,
+            "xvel": -1.5,
+            "yvel": 0
+        },
+        {
+            "info": "eyeball",
+            "x": 70,
+            "y": 550,
+            "xvel": 1.5,
+            "yvel": 0
+        },
+        {
+            "info": "eyeball",
+            "x": 700,
+            "y": 50,
+            "xvel": 0,
+            "yvel": 1
+        },
+        {
+            "info": "eyeball",
+            "x": 700,
+            "y": 900,
+            "xvel": 0,
+            "yvel": -1
+        },
+
+        {
+            "info": "eyeball",
+            "x": 400,
+            "y": 800,
+            "xvel": 0.5,
+            "yvel": -1
+        },
+        {
+            "info": "eyeball",
+            "x": 900,
+            "y": 800,
+            "xvel": -0.5,
+            "yvel": -1
+        },
+        {
+            "info": "eyeball",
+            "x": 900,
+            "y": 50,
+            "xvel": -0.5,
+            "yvel": 1
+        },
+        {
+            "info": "eyeball",
+            "x": 400,
+            "y": 50,
+            "xvel": 0.5,
+            "yvel": 1
+        },
+        {
+            "info": "eyeball",
+            "x": 400,
+            "y": 20,
+            "xvel": 0.5,
+            "yvel": 1.5
+        }
+
+        ]
+    },
+    {
+        "level": 5,
+        "spawns": 
+        [
             {
-                "info": "peeker",
+                "info": "final_boss",
                 "x": 1050,
                 "y": 200,
-                "xvel": -1,
-                "yvel": 0
-            },
-            {
-                "info": "peeker",
-                "x": 1000,
-                "y": 250,
-                "xvel": -1,
+                "xvel": 0,
                 "yvel": 0
             }
         ]

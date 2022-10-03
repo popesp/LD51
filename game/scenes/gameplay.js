@@ -18,7 +18,7 @@ const dude = {
     height: 128,
     hp_max: 5,
     hp_current: 5,
-    level: 1
+    level: 4
 }
 
 let bullets = [];
@@ -52,6 +52,12 @@ export default new Phaser.Class({
         this.load.image('smoke_trail', 'assets/sprites/smoke_trail.png');
         this.load.image('blood', 'assets/sprites/blood.png');
         this.load.image('time_effect', 'assets/sprites/time_effect.png');
+
+
+        this.load.spritesheet('final_boss',
+            'assets/sprites/final_boss.png',
+            {frameWidth: 128, frameHeight: 64}
+        );
 
         this.load.spritesheet('idle',
             'assets/sprites/idle.png',
@@ -160,6 +166,13 @@ export default new Phaser.Class({
         });
 
         this.anims.create({
+            key: "final_boss",
+            frames: this.anims.generateFrameNumbers("final_boss", {start: 0, end: 0}),
+            frameRate: 15,
+            repeat: -1
+        });
+
+        this.anims.create({
             key: "eyeball",
             frames: this.anims.generateFrameNumbers("eyeball", {start: 0, end: 24}),
             frameRate: 10,
@@ -199,12 +212,14 @@ export default new Phaser.Class({
 
         this.cursors = this.input.keyboard.addKeys("UP,LEFT,DOWN,RIGHT,W,A,S,D,R,SPACE");
         this.ui = {
+            top_hud_bg: this.add.graphics().fillStyle(0x000000, 0.7).fillRect(0, 0, WIDTH_CANVAS, 60).setPosition(0, 0),
+            // bottom_hud_bg: this.add.graphics().fillStyle(0x000000, 0.7).fillRect(0, 0, WIDTH_CANVAS, 40).setPosition(0, HEIGHT_CANVAS-40),
             bar_bg: this.add.graphics().fillStyle(0xcc2418, 1).fillRect(0, -2, 204, 38).setPosition(14, 14),
             bar: this.add.graphics().fillStyle(0xebb134, 1).fillRect(0, 0, 200, 30).setPosition(16, 16),
             health_display: this.add.text(52, 18, "Health: " + dude.hp_max, {fontSize: "24px", fill: "#000"}),
             text_timer: this.add.text(500, 18, + timer + " SECONDS REMAIN", {fontSize: "24px", fill: "white"}),
             baddies_left: this.add.text(WIDTH_CANVAS-300, 18, "Enemies Remaining " + baddies.length, {fontSize: "24px", fill: "white"}),
-            text_level: this.add.text(WIDTH_CANVAS-150, HEIGHT_CANVAS - 30, "LEVEL: " + dude.level, {fontSize: "24px", fill: "white"})
+            text_level: this.add.text(WIDTH_CANVAS-150, HEIGHT_CANVAS - 30, "LEVEL: " + dude.level, {fontSize: "24px", fill: "white"}),
         };
 
         for(const key_object in this.ui)
@@ -212,12 +227,8 @@ export default new Phaser.Class({
 
         second_count = this.time.addEvent({ delay: 1000, callback: addSecond, callbackScope: this, loop: true });
         second_count.paused = true;
-
-        dude.sprite.play("idle");
-        this.music = this.sound.add("theme");
-        this.music.loop = true;
-        this.music.play({volume: 0.15});
         startLoop(this);
+        dude.sprite.play("idle");
 	},
     update: function()
     {   
@@ -225,8 +236,12 @@ export default new Phaser.Class({
         {
             if(second_count.paused === true)
             {
-                second_count.paused = false;
-                
+                second_count.paused = false;  
+            }
+
+            if(dude.level === 5 && this.ui.final_boss_hp_bg === undefined)
+            {
+                this.ui.final_boss_hp_bg = this.add.graphics().fillStyle(0xcc2418, 1).fillRect(0, -2, 800, 38).setPosition(WIDTH_CANVAS/2 - 400, HEIGHT_CANVAS-102).setScrollFactor(0).setDepth(4);
             }
             // console.log(random.float(0, 5));
             // random.lcg.reset();
@@ -297,9 +312,9 @@ export default new Phaser.Class({
                 dude.sprite.anims.play("run", true);
             }
 
-            if(dude.sprite.x - dude.width/2 < 0)
+            if(dude.sprite.x - dude.width/2 - 40 < 0)
             {
-                dude.sprite.x = dude.width/2;
+                dude.sprite.x = dude.width/2 + 40;
             }
             if(dude.sprite.x + dude.width/2 > MAP_WIDTH)
             {
@@ -433,8 +448,20 @@ function move_bullets(game)
                     game.sound.play("baddie_hit", {volume: 0.5});
                     game.emitter_blood.explode(5, bullet.sprite.x, bullet.sprite.y);
 					baddie.hp -= bullet.damage;
-                    bullet.delete = true;
-                    bullet.sprite.destroy();
+                    if(dude.level === 5 && game.ui.final_boss_hp_bg !== undefined)
+                    {  
+                        game.ui.final_boss_hp_bg.scaleX = baddie.hp/50;
+                        bullet.life = 100;
+                        bullet.xvel = -bullet.xvel;
+                        bullet.yvel = -bullet.yvel;
+                        refelect_bullets();
+                    }
+                    else
+                    {
+                        bullet.delete = true;
+                        bullet.sprite.destroy();
+                    }
+
 					if(baddie.hp <= 0)
 					{
 						baddie.delete = true;
@@ -501,7 +528,7 @@ function move_baddies(game)
         baddie.sprite.y += baddie.yvel;
 
         //check if player hit
-        if (Math.abs(dude.sprite.x - baddie.sprite.x) < baddie.width/2 && Math.abs(dude.sprite.y - baddie.sprite.y) < baddie.height/2)
+        if (Math.abs(baddie.sprite.x - dude.sprite.x) < dude.width/2 && Math.abs(baddie.sprite.y - dude.sprite.y) < dude.height/2)
         {
             playerDamage(game, baddie.damage);
         }
@@ -584,8 +611,8 @@ function playerDamage(game, damage)
             dude.hp_current = 0;
             scene_playing = true;
             second_count.paused  = true;
-            const game_over_text = game.add.text(dude.sprite.x, dude.sprite.y, "DEATH", {fontFamily: FONT_TITLE, color: "white", fontSize: "80px"}).setOrigin(0.5).setDepth(2);;
-            game.emitter_blood.explode(600, dude.sprite.x, dude.sprite.y);
+            const game_over_text = game.add.text(dude.sprite.x, dude.sprite.y, "", {fontFamily: FONT_TITLE, color: "white", fontSize: "80px"}).setOrigin(0.5).setDepth(2);;
+            game.emitter_blood.explode(80, dude.sprite.x, dude.sprite.y);
             dude.sprite.anims.play("death");
             game.tweens.addCounter({
                 from: 0,
@@ -675,6 +702,22 @@ function startLoop(game)
         lifespan: 1500,
         gravityY: 0
     });
+}
+
+function refelect_bullets()
+{
+    for(const bullet of bullets)
+    {
+        for(const baddie of baddies)
+        {
+            if(Math.abs(bullet.sprite.x - baddie.sprite.x) < baddie.width/2 && Math.abs(bullet.sprite.y - baddie.sprite.y) < baddie.height/2)
+            {
+                bullet.sprite.x += 2*(bullet.xvel);
+                bullet.sprite.y += 2*(bullet.yvel);
+                refelect_bullets();
+            }
+        }
+    }
 }
 
 function restartTimeLoop(game, nextlevel)
